@@ -198,6 +198,9 @@ const NewCheque = () => {
   const imgRef = useRef(null);
   const navigate = useNavigate();
 
+  // Track image size so print overlay uses identical coordinates
+  const [imgSize, setImgSize] = useState({ w: 0, h: 0 });
+
   // CLIENT + SYSTEM FIELDS ---------------------------------
   const [company, setCompany] = useState("Intermid Training Center");
   const [payee, setPayee] = useState("");
@@ -220,7 +223,19 @@ const NewCheque = () => {
   const [saveError, setSaveError] = useState("");
   const [saveDone, setSaveDone] = useState(false);
 
-  // Core drawing logic
+  // --- helper to get words split exactly like canvas preview ---
+  function splitWordsForLines(amountValue) {
+    const fullWords = formatAmountInWords(amountValue) || "";
+    const lineLen1 = 47;
+    const lineLen2 = 39;
+    const line1 = fullWords.substring(0, lineLen1);
+    const rest = fullWords.substring(lineLen1);
+    const line2 = rest.substring(0, lineLen2);
+    const line3 = rest.substring(lineLen2);
+    return { line1, line2, line3 };
+  }
+
+  // Core drawing logic (for on-screen preview only)
   const drawCheque = (
     img,
     canvas,
@@ -251,18 +266,8 @@ const NewCheque = () => {
 
     // Amount in words
     if (amountValue) {
-      const fullWords = formatAmountInWords(amountValue);
+      const { line1, line2, line3 } = splitWordsForLines(amountValue);
       ctx.font = `${cfgValue.wordsFont}px Arial`;
-
-      // simple wrapping (3 lines max)
-      const lineLen1 = 47;
-      const lineLen2 = 39;
-
-      const safe = fullWords || "";
-      const line1 = safe.substring(0, lineLen1);
-      const rest = safe.substring(lineLen1);
-      const line2 = rest.substring(0, lineLen2);
-      const line3 = rest.substring(lineLen2);
 
       ctx.fillText(line1, cfgValue.wordsX, cfgValue.wordsY);
       if (line2.trim())
@@ -312,6 +317,7 @@ const NewCheque = () => {
 
     img.onload = () => {
       imgRef.current = img;
+      setImgSize({ w: img.naturalWidth || img.width, h: img.naturalHeight || img.height });
       drawCheque(
         img,
         canvasRef.current,
@@ -338,7 +344,7 @@ const NewCheque = () => {
     );
   }, [payee, hideBeneficiary, date, amount, cfg]);
 
-  // Download canvas as PNG
+  // Download canvas as PNG (screen preview)
   const handleDownload = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -349,20 +355,85 @@ const NewCheque = () => {
     link.click();
   };
 
-  // Print: open new window with image
+  // Print: **NO BACKGROUND** — render only positioned text in a clean window
   const handlePrint = () => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const dataUrl = canvas.toDataURL("image/png");
-    const win = window.open("", "_blank");
-    if (!win) return;
-    win.document.write(`
+    const { w, h } = imgSize;
+    if (!w || !h) return;
+
+    const finalPayee = hideBeneficiary ? "" : payee;
+    const { line1, line2, line3 } = splitWordsForLines(amount);
+
+    // date digits
+    let dateHtml = "";
+    if (date) {
+      const [y, m, d] = date.split("-");
+      if (y && m && d) {
+        const digits = `${d}${m}${y}`;
+        let x = cfg.dateBaseX;
+        for (let i = 0; i < digits.length; i++) {
+          dateHtml += `<div class="txt" style="left:${x}px;top:${cfg.dateY}px;font:${cfg.dateFont ||
+            20}px Arial;">${digits[i]}</div>`;
+          x += cfg.dateGap;
+        }
+      }
+    }
+
+    // amount numeric
+    let amountNum = "";
+    if (amount) {
+      const parts = amount.toString().split(".");
+      const numTxt = parts.length > 1 ? `${parts[0]}/${parts[1]}` : `${parts[0]}/-`;
+      amountNum = `<div class="txt" style="left:${cfg.numX}px;top:${cfg.numY}px;font:${cfg.numFont}px Arial;">${numTxt}</div>`;
+    }
+
+    // payee
+    const payeeHtml = finalPayee
+      ? `<div class="txt" style="left:${cfg.nameX}px;top:${cfg.nameY}px;font:${cfg.nameFont}px Arial;">${finalPayee.toUpperCase()}</div>`
+      : "";
+
+    // amount words (max 3 lines)
+    const wordsHtml = amount
+      ? `
+      <div class="txt" style="left:${cfg.wordsX}px;top:${cfg.wordsY}px;font:${cfg.wordsFont}px Arial;">${line1}</div>
+      ${line2.trim() ? `<div class="txt" style="left:${cfg.wordsX}px;top:${cfg.wordsY + cfg.wordsLineGap}px;font:${cfg.wordsFont}px Arial;">${line2}</div>` : ""}
+      ${line3.trim() ? `<div class="txt" style="left:${cfg.wordsX}px;top:${cfg.wordsY + cfg.wordsLineGap * 2}px;font:${cfg.wordsFont}px Arial;">${line3}</div>` : ""}
+    `
+      : "";
+
+    const html = `
+      <!doctype html>
       <html>
-        <head><title>Print cheque</title></head>
-        <body style="margin:0">
-          <img src="${dataUrl}" style="width:100%;height:auto;"/>
+        <head>
+          <meta charset="utf-8" />
+          <title>Print Cheque</title>
+          <style>
+            @page { size: A4; margin: 0; }
+            html, body { margin: 0; padding: 0; background: #fff; }
+            .page {
+              position: relative;
+              width: ${w}px;
+              height: ${h}px;
+              margin: 0;
+            }
+            /* Absolutely positioned text */
+            .txt {
+              position: absolute;
+              color: #000;
+              white-space: pre;
+            }
+          </style>
+        </head>
+        <body>
+          <!-- No background image here on purpose -->
+          <div class="page">
+            ${payeeHtml}
+            ${wordsHtml}
+            ${amountNum}
+            ${dateHtml}
+          </div>
+
           <script>
-            window.onload = function() {
+            window.onload = function(){
               window.focus();
               window.print();
               window.close();
@@ -370,7 +441,12 @@ const NewCheque = () => {
           </script>
         </body>
       </html>
-    `);
+    `;
+
+    const win = window.open("", "_blank");
+    if (!win) return;
+    win.document.open();
+    win.document.write(html);
     win.document.close();
   };
 
@@ -607,7 +683,7 @@ const NewCheque = () => {
                 checked={showAdvanced}
                 onChange={(e) => setShowAdvanced(e.target.checked)}
               />{" "}
-            Advanced calibration
+              Advanced calibration
             </label>
 
             {showAdvanced && (
