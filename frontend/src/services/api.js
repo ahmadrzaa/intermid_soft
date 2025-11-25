@@ -1,18 +1,29 @@
+// frontend/src/services/api.js
 import axios from "axios";
 
+// Use Render backend in production (set on Render as VITE_API_URL),
+// fallback to local dev server when running locally.
+const baseURL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE || "http://localhost:3001",
-  withCredentials: false,
+  baseURL,
+  withCredentials: false, // we're using Bearer tokens, not cookies
 });
 
-// Attach token
+// Attach token on every request
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-  if (token) config.headers.Authorization = `Bearer ${token}`;
+  try {
+    const token = localStorage.getItem("token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+  } catch {
+    // ignore storage errors
+  }
   return config;
 });
 
-// Handle 401 globally (optional)
+// Global 401 handler (optional)
 api.interceptors.response.use(
   (r) => r,
   (err) => {
