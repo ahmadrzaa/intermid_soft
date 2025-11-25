@@ -10,7 +10,7 @@ import { createCheque } from "../../services/cheques";
 // Convert number to words (BHD style)
 function bhd(amount) {
   const words = [];
-  words[0] = "zero";
+  words[0] = "Zero"; // <-- CHANGED: capitalized to fix "Three Hundred Zero Only"
   words[1] = "One";
   words[2] = "Two";
   words[3] = "Three";
@@ -76,17 +76,43 @@ function bhd(amount) {
 
     for (let i = 0; i < 11; i++) {
       let value = 0;
-      if (i === 0 || i === 3 || i === 6 || i === 9) value = n_array[i] * 10;
-      else if (i === 2 || i === 5 || i === 8) value = n_array[i] * 100;
-      else value = n_array[i];
+      if (i === 0 || i === 3 || i === 6 || i === 9) {
+        value = n_array[i] * 10;
+      } else if (i === 2 || i === 5 || i === 8) {
+        value = n_array[i] * 100;
+      } else {
+        value = n_array[i];
+      }
 
-      if (value !== 0) words_string += words[value] + " ";
+      if (value !== 0) {
+        words_string += words[value] + " ";
+      }
 
-      if (i === 1 && value !== 0) words_string += "Billion ";
-      if (i === 4 && (value !== 0 || n_array[i - 1] > 0 || n_array[i - 2] > 0))
+      if (i === 1 && value !== 0 && n_array[i - 1] > 0) {
+        words_string += "Billion ";
+      } else if (i === 1 && value !== 0) {
+        words_string += "Billion ";
+      }
+
+      if (
+        i === 4 &&
+        value === 0 &&
+        (n_array[i - 1] > 0 || n_array[i - 2] > 0)
+      ) {
         words_string += "Million ";
-      if (i === 7 && (value !== 0 || n_array[i - 1] > 0 || n_array[i - 2] > 0))
+      } else if (i === 4 && value !== 0) {
+        words_string += "Million ";
+      }
+
+      if (
+        i === 7 &&
+        value === 0 &&
+        (n_array[i - 1] > 0 || n_array[i - 2] > 0)
+      ) {
         words_string += "Thousand ";
+      } else if (i === 7 && value !== 0) {
+        words_string += "Thousand ";
+      }
     }
 
     words_string = words_string.split(" ").join(" ");
@@ -197,7 +223,7 @@ const NewCheque = () => {
   const [saveError, setSaveError] = useState("");
   const [saveDone, setSaveDone] = useState(false);
 
-  // helper: words → 3 lines exactly like preview
+  // --- helper to get words split exactly like canvas preview ---
   function splitWordsForLines(amountValue) {
     const fullWords = formatAmountInWords(amountValue) || "";
     const lineLen1 = 47;
@@ -209,7 +235,7 @@ const NewCheque = () => {
     return { line1, line2, line3 };
   }
 
-  // Core drawing logic (screen preview)
+  // Core drawing logic (for on-screen preview only)
   const drawCheque = (
     img,
     canvas,
@@ -231,7 +257,7 @@ const NewCheque = () => {
 
     ctx.fillStyle = "#000";
 
-    // Payee
+    // Payee name (optional hide on printed cheque)
     const finalPayee = hidePayee ? "" : payeeValue;
     if (finalPayee) {
       ctx.font = `${cfgValue.nameFont}px Arial`;
@@ -258,18 +284,19 @@ const NewCheque = () => {
         );
     }
 
-    // Amount numbers
+    // Amount numbers (BD)
     if (amountValue) {
       ctx.font = `${cfgValue.numFont}px Arial`;
       const parts = amountValue.toString().split(".");
-      if (parts.length > 1) {
-        ctx.fillText(`${parts[0]}/${parts[1]}`, cfgValue.numX, cfgValue.numY);
+      const fils = parts[1] ? parts[1].padEnd(3, "0").slice(0, 3) : ""; // <-- CHANGED
+      if (fils) {
+        ctx.fillText(`${parts[0]}/${fils}`, cfgValue.numX, cfgValue.numY);
       } else {
         ctx.fillText(`${parts[0]}/-`, cfgValue.numX, cfgValue.numY);
       }
     }
 
-    // Date digits
+    // Date digits (DDMMYYYY into small boxes)
     if (dateValue) {
       const [y, m, d] = dateValue.split("-");
       if (y && m && d) {
@@ -284,10 +311,10 @@ const NewCheque = () => {
     }
   };
 
-  // Load cheque background (screen only)
+  // Load cheque background image once
   useEffect(() => {
     const img = new Image();
-    img.src = "/bbk_3.jpeg"; // kept for on-screen preview only
+    img.src = "/bbk_3.jpeg"; // in /public
 
     img.onload = () => {
       imgRef.current = img;
@@ -295,9 +322,17 @@ const NewCheque = () => {
         w: img.naturalWidth || img.width,
         h: img.naturalHeight || img.height,
       });
-      drawCheque(img, canvasRef.current, payee, hideBeneficiary, date, amount, cfg);
+      drawCheque(
+        img,
+        canvasRef.current,
+        payee,
+        hideBeneficiary,
+        date,
+        amount,
+        cfg
+      );
     };
-  }, []); // once
+  }, []); // only once
 
   // Redraw when data / cfg changes
   useEffect(() => {
@@ -313,7 +348,7 @@ const NewCheque = () => {
     );
   }, [payee, hideBeneficiary, date, amount, cfg]);
 
-  // Download the preview PNG (with background)
+  // Download canvas as PNG (screen preview)
   const handleDownload = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -324,9 +359,8 @@ const NewCheque = () => {
     link.click();
   };
 
-  // PRINT: only the text overlay (transparent), no background template.
-  // The print window uses A4 with ZERO margins and mm-based offset/scale
-  // so nothing gets clipped. Tweak 3 CSS vars if you need micro-moves.
+  // Print: **NO BACKGROUND** — render only positioned text via a CANVAS OVERLAY
+  // This uses the exact same coordinates as the preview, so date/amount digits align.
   const handlePrint = () => {
     const srcCanvas = canvasRef.current;
     if (!srcCanvas) return;
@@ -356,12 +390,12 @@ const NewCheque = () => {
         ctx.fillText(line3, cfg.wordsX, cfg.wordsY + cfg.wordsLineGap * 2);
     }
 
-    // Amount numbers
+    // Amount numbers (pad fils to 3 digits)
     if (amount) {
       ctx.font = `${cfg.numFont}px Arial`;
       const parts = amount.toString().split(".");
-      if (parts.length > 1)
-        ctx.fillText(`${parts[0]}/${parts[1]}`, cfg.numX, cfg.numY);
+      const fils = parts[1] ? parts[1].padEnd(3, "0").slice(0, 3) : ""; // <-- CHANGED
+      if (fils) ctx.fillText(`${parts[0]}/${fils}`, cfg.numX, cfg.numY);
       else ctx.fillText(`${parts[0]}/-`, cfg.numX, cfg.numY);
     }
 
@@ -393,21 +427,18 @@ const NewCheque = () => {
           <style>
             @page { size: A4 portrait; margin: 0; }
             html,body { margin:0; padding:0; background:transparent; }
-
             :root{
               /* tweak these for micro-adjustments on a given printer */
               --print-offset-x: 10mm;   /* left offset */
               --print-offset-y: 12mm;   /* top offset  */
               --print-scale: 0.92;      /* 1.00 = no scale; reduce if right edge clips */
             }
-
             .print-sheet{
               position:relative;
               width:210mm;
               height:297mm;
               overflow:hidden;
             }
-
             .print-overlay{
               position:absolute;
               top:var(--print-offset-y);
@@ -432,8 +463,62 @@ const NewCheque = () => {
     win.document.close();
   };
 
-  // Share – simple: download
-  const handleShare = () => handleDownload();
+  // NEW: Print full cheque image + text (for PDF / system preview)
+  const handlePrintWithTemplate = () => {
+    const srcCanvas = canvasRef.current;
+    if (!srcCanvas) return;
+
+    const dataUrl = srcCanvas.toDataURL("image/png");
+
+    const win = window.open("", "_blank");
+    if (!win) return;
+
+    win.document.write(`
+      <html>
+        <head>
+          <meta charset="utf-8" />
+          <title>Print Cheque (with template)</title>
+          <style>
+            @page { size: A4 portrait; margin: 0; }
+            html,body {
+              margin:0;
+              padding:0;
+              background:#ffffff;
+            }
+            .print-sheet {
+              position:relative;
+              width:210mm;
+              height:297mm;
+              overflow:hidden;
+            }
+            .print-img {
+              position:absolute;
+              top:10mm;          /* adjust if needed */
+              left:10mm;         /* adjust if needed */
+              transform-origin:top left;
+              transform:scale(0.92); /* same idea as overlay scale */
+              max-width:none;
+              max-height:none;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="print-sheet">
+            <img class="print-img" src="${dataUrl}" />
+          </div>
+          <script>
+            window.onload = function(){ window.focus(); window.print(); window.close(); };
+          </script>
+        </body>
+      </html>
+    `);
+    win.document.close();
+  };
+
+  // Share – simple: just download for now
+  const handleShare = () => {
+    handleDownload();
+  };
 
   // Update cfg + persist
   const updateCfg = (field, value) => {
@@ -473,10 +558,13 @@ const NewCheque = () => {
 
       await createCheque(payload);
       setSaveDone(true);
+
+      // After save, go to history so user can see it in the list
       navigate("/app/history");
     } catch (e) {
       setSaveError(
-        e?.response?.data?.message || "Failed to save cheque. Please try again."
+        e?.response?.data?.message ||
+          "Failed to save cheque. Please try again."
       );
     } finally {
       setSaving(false);
@@ -488,8 +576,7 @@ const NewCheque = () => {
       <h1 className="cheque-title">Write cheque — BBK</h1>
       <p className="cheque-subtitle">
         Fill the cheque on the left. The preview on the right prints exactly on
-        the original cheque — print produces ONLY the text overlay (no
-        background).
+        top of the original BBK cheque.
       </p>
 
       <div className="cheque-card">
@@ -614,22 +701,55 @@ const NewCheque = () => {
                 onClick={handleSaveToSystem}
                 disabled={saving}
               >
-                <span className="btn-icon" aria-hidden="true">💾</span>
+                <span className="btn-icon" aria-hidden="true">
+                  💾
+                </span>
                 <span>{saving ? "Saving…" : "Save cheque"}</span>
               </button>
 
-              <button type="button" className="btn btn-download" onClick={handleDownload}>
-                <span className="btn-icon" aria-hidden="true">⭳</span>
+              <button
+                type="button"
+                className="btn btn-download"
+                onClick={handleDownload}
+              >
+                <span className="btn-icon" aria-hidden="true">
+                  ⭳
+                </span>
                 <span>Download</span>
               </button>
 
-              <button type="button" className="btn btn-print" onClick={handlePrint}>
-                <span className="btn-icon" aria-hidden="true">🖨</span>
-                <span>Print</span>
+              {/* OLD behaviour: print only text on physical cheque */}
+              <button
+                type="button"
+                className="btn btn-print"
+                onClick={handlePrint}
+              >
+                <span className="btn-icon" aria-hidden="true">
+                  🖨
+                </span>
+                <span>Print (cheque only)</span>
               </button>
 
-              <button type="button" className="btn btn-share" onClick={handleShare}>
-                <span className="btn-icon" aria-hidden="true">⤴</span>
+              {/* NEW button: full template for PDF / preview */}
+              <button
+                type="button"
+                className="btn btn-print"
+                onClick={handlePrintWithTemplate}
+              >
+                <span className="btn-icon" aria-hidden="true">
+                  🧾
+                </span>
+                <span>Print with template</span>
+              </button>
+
+              <button
+                type="button"
+                className="btn btn-share"
+                onClick={handleShare}
+              >
+                <span className="btn-icon" aria-hidden="true">
+                  ⤴
+                </span>
                 <span>Share</span>
               </button>
             </div>
@@ -649,69 +769,137 @@ const NewCheque = () => {
                 <h3>Line lengths</h3>
                 <div className="advanced-row">
                   <span>Line 1</span>
-                  <input type="number" defaultValue={47} disabled className="advanced-input disabled" />
+                  <input
+                    type="number"
+                    defaultValue={47}
+                    disabled
+                    className="advanced-input disabled"
+                  />
                   <span>Line 2</span>
-                  <input type="number" defaultValue={39} disabled className="advanced-input disabled" />
+                  <input
+                    type="number"
+                    defaultValue={39}
+                    disabled
+                    className="advanced-input disabled"
+                  />
                 </div>
 
                 <h3>Name (Payee)</h3>
                 <div className="advanced-row">
                   <span>X</span>
-                  <input type="number" className="advanced-input" value={cfg.nameX}
-                         onChange={(e) => updateCfg("nameX", e.target.value)} />
+                  <input
+                    type="number"
+                    className="advanced-input"
+                    value={cfg.nameX}
+                    onChange={(e) => updateCfg("nameX", e.target.value)}
+                  />
                   <span>Y</span>
-                  <input type="number" className="advanced-input" value={cfg.nameY}
-                         onChange={(e) => updateCfg("nameY", e.target.value)} />
+                  <input
+                    type="number"
+                    className="advanced-input"
+                    value={cfg.nameY}
+                    onChange={(e) => updateCfg("nameY", e.target.value)}
+                  />
                   <span>Font px</span>
-                  <input type="number" className="advanced-input" value={cfg.nameFont}
-                         onChange={(e) => updateCfg("nameFont", e.target.value)} />
+                  <input
+                    type="number"
+                    className="advanced-input"
+                    value={cfg.nameFont}
+                    onChange={(e) => updateCfg("nameFont", e.target.value)}
+                  />
                 </div>
 
                 <h3>Amount (in words)</h3>
                 <div className="advanced-row">
                   <span>Start X</span>
-                  <input type="number" className="advanced-input" value={cfg.wordsX}
-                         onChange={(e) => updateCfg("wordsX", e.target.value)} />
+                  <input
+                    type="number"
+                    className="advanced-input"
+                    value={cfg.wordsX}
+                    onChange={(e) => updateCfg("wordsX", e.target.value)}
+                  />
                   <span>Start Y</span>
-                  <input type="number" className="advanced-input" value={cfg.wordsY}
-                         onChange={(e) => updateCfg("wordsY", e.target.value)} />
+                  <input
+                    type="number"
+                    className="advanced-input"
+                    value={cfg.wordsY}
+                    onChange={(e) => updateCfg("wordsY", e.target.value)}
+                  />
                 </div>
                 <div className="advanced-row">
                   <span>Line gap px</span>
-                  <input type="number" className="advanced-input" value={cfg.wordsLineGap}
-                         onChange={(e) => updateCfg("wordsLineGap", e.target.value)} />
+                  <input
+                    type="number"
+                    className="advanced-input"
+                    value={cfg.wordsLineGap}
+                    onChange={(e) =>
+                      updateCfg("wordsLineGap", e.target.value)
+                    }
+                  />
                   <span>Font px</span>
-                  <input type="number" className="advanced-input" value={cfg.wordsFont}
-                         onChange={(e) => updateCfg("wordsFont", e.target.value)} />
+                  <input
+                    type="number"
+                    className="advanced-input"
+                    value={cfg.wordsFont}
+                    onChange={(e) => updateCfg("wordsFont", e.target.value)}
+                  />
                 </div>
 
                 <h3>Amount (numbers)</h3>
                 <div className="advanced-row">
                   <span>X</span>
-                  <input type="number" className="advanced-input" value={cfg.numX}
-                         onChange={(e) => updateCfg("numX", e.target.value)} />
+                  <input
+                    type="number"
+                    className="advanced-input"
+                    value={cfg.numX}
+                    onChange={(e) => updateCfg("numX", e.target.value)}
+                  />
                   <span>Y</span>
-                  <input type="number" className="advanced-input" value={cfg.numY}
-                         onChange={(e) => updateCfg("numY", e.target.value)} />
+                  <input
+                    type="number"
+                    className="advanced-input"
+                    value={cfg.numY}
+                    onChange={(e) => updateCfg("numY", e.target.value)}
+                  />
                   <span>Font px</span>
-                  <input type="number" className="advanced-input" value={cfg.numFont}
-                         onChange={(e) => updateCfg("numFont", e.target.value)} />
+                  <input
+                    type="number"
+                    className="advanced-input"
+                    value={cfg.numFont}
+                    onChange={(e) => updateCfg("numFont", e.target.value)}
+                  />
                 </div>
 
                 <h3>Date digits</h3>
                 <div className="advanced-row">
                   <span>Base X</span>
-                  <input type="number" className="advanced-input" value={cfg.dateBaseX}
-                         onChange={(e) => updateCfg("dateBaseX", e.target.value)} />
+                  <input
+                    type="number"
+                    className="advanced-input"
+                    value={cfg.dateBaseX}
+                    onChange={(e) => updateCfg("dateBaseX", e.target.value)}
+                  />
                   <span>Y</span>
-                  <input type="number" className="advanced-input" value={cfg.dateY}
-                         onChange={(e) => updateCfg("dateY", e.target.value)} />
+                  <input
+                    type="number"
+                    className="advanced-input"
+                    value={cfg.dateY}
+                    onChange={(e) => updateCfg("dateY", e.target.value)}
+                  />
                   <span>Gap px</span>
-                  <input type="number" className="advanced-input" value={cfg.dateGap}
-                         onChange={(e) => updateCfg("dateGap", e.target.value)} />
+                  <input
+                    type="number"
+                    className="advanced-input"
+                    value={cfg.dateGap}
+                    onChange={(e) => updateCfg("dateGap", e.target.value)}
+                  />
                   <span>Font px</span>
-                  <input type="number" className="advanced-input" value={cfg.dateFont || 20}
-                         onChange={(e) => updateCfg("dateFont", e.target.value)} />
+                  <input
+                    type="number"
+                    className="advanced-input"
+                    value={cfg.dateFont || 20}
+                    onChange={(e) => updateCfg("dateFont", e.target.value)}
+                  />
                 </div>
               </div>
             )}
