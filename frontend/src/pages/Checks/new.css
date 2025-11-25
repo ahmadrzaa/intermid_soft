@@ -1,7 +1,8 @@
 /* frontend/src/pages/Checks/new.css */
 
+/* -------------------- PAGE / LAYOUT -------------------- */
+
 .cheque-page {
-  /* Let the main layout handle background + footer */
   padding: 24px 32px 32px;
   background: transparent;
   min-height: auto;
@@ -34,7 +35,7 @@
   align-items: flex-start;
 }
 
-/* Left form */
+/* -------------------- LEFT FORM -------------------- */
 
 .cheque-form {
   display: flex;
@@ -90,7 +91,7 @@
   color: #4b5563;
 }
 
-/* SAVE / ERROR MESSAGES */
+/* -------------------- SAVE / STATUS -------------------- */
 
 .cheque-error {
   margin-top: 4px;
@@ -112,7 +113,7 @@
   font-size: 12px;
 }
 
-/* Buttons – glass effect */
+/* -------------------- BUTTONS -------------------- */
 
 .button-row {
   display: flex;
@@ -124,13 +125,9 @@
 .btn {
   flex: 1 1 110px;
   height: 40px;
-  border-radius: 10px; /* rectangular with slight rounding */
+  border-radius: 10px;
   border: 1px solid rgba(148, 163, 184, 0.7);
-  background: linear-gradient(
-      135deg,
-      rgba(255, 255, 255, 0.15),
-      rgba(148, 163, 184, 0.12)
-    );
+  background: linear-gradient(135deg, rgba(255,255,255,.15), rgba(148,163,184,.12));
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   color: #111827;
@@ -142,53 +139,32 @@
   justify-content: center;
   gap: 6px;
   padding: 0 14px;
-  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.12);
-  transition:
-    transform 0.12s ease,
-    box-shadow 0.12s ease,
-    background 0.12s ease,
-    border-color 0.12s ease;
+  box-shadow: 0 10px 25px rgba(15,23,42,.12);
+  transition: transform .12s ease, box-shadow .12s ease, background .12s ease, border-color .12s ease;
 }
 
 .btn:hover {
-  background: linear-gradient(
-      135deg,
-      rgba(255, 255, 255, 0.2),
-      rgba(148, 163, 184, 0.2)
-    );
-  border-color: rgba(79, 70, 229, 0.7);
-  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.18);
+  background: linear-gradient(135deg, rgba(255,255,255,.2), rgba(148,163,184,.2));
+  border-color: rgba(79,70,229,.7);
+  box-shadow: 0 12px 30px rgba(15,23,42,.18);
   transform: translateY(-1px);
 }
 
 .btn:active {
   transform: translateY(0);
-  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.18);
+  box-shadow: 0 6px 16px rgba(15,23,42,.18);
 }
 
-.btn-icon {
-  font-size: 15px;
-  line-height: 1;
-  display: inline-flex;
+.btn-icon { font-size: 15px; line-height: 1; }
+
+.btn-save {
+  border-color: rgba(34,197,94,.9);
+  background: linear-gradient(135deg, rgba(34,197,94,.15), rgba(22,163,74,.1));
 }
 
-/* Specific buttons */
-.btn-save { border-color: rgba(34, 197, 94, 0.9);
-  background: linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(22, 163, 74, 0.1)); }
-.btn-save:hover { border-color: rgba(22, 163, 74, 1); }
-.btn-download {}
-.btn-print {}
-.btn-share {}
+/* -------------------- ADVANCED -------------------- */
 
-/* Advanced calibration */
-
-.advanced-toggle {
-  margin-top: 8px;
-  font-size: 13px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
+.advanced-toggle { margin-top: 8px; font-size: 13px; display: flex; align-items: center; gap: 6px; }
 
 .advanced-panel {
   margin-top: 10px;
@@ -201,19 +177,9 @@
   gap: 6px;
 }
 
-.advanced-panel h3 {
-  font-size: 12px;
-  font-weight: 700;
-  margin: 4px 0;
-}
+.advanced-panel h3 { font-size: 12px; font-weight: 700; margin: 4px 0; }
 
-.advanced-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  align-items: center;
-  font-size: 12px;
-}
+.advanced-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 12px; }
 
 .advanced-input {
   width: 70px;
@@ -224,78 +190,74 @@
   box-sizing: border-box;
 }
 
-.advanced-input.disabled {
-  background: #f3f4f6;
-}
+.advanced-input.disabled { background: #f3f4f6; }
 
-/* Right preview */
+/* -------------------- RIGHT PREVIEW -------------------- */
 
 .cheque-preview {
   width: 100%;
   overflow: visible;
   display: flex;
-  justify-content: center; /* center the cheque */
+  justify-content: center;
 }
 
-/* Desktop: slightly smaller than the column width */
 .cheque-canvas {
-  width: 90%; /* make cheque a bit smaller */
-  max-width: 900px; /* prevent it from getting too wide */
+  width: 90%;
+  max-width: 900px;
   height: auto;
   display: block;
   border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.16);
+  box-shadow: 0 8px 24px rgba(15,23,42,.16);
   background: #ffffff;
 }
 
-/* Responsive */
+/* -------------------- RESPONSIVE -------------------- */
+
 @media (max-width: 960px) {
-  .cheque-main {
-    grid-template-columns: 1fr;
-  }
-
-  .cheque-page {
-    padding: 16px 16px 24px;
-  }
+  .cheque-main { grid-template-columns: 1fr; }
+  .cheque-page { padding: 16px 16px 24px; }
 }
 
-/* Mobile / tablet – use full width for clarity */
 @media (max-width: 1024px) {
-  .cheque-canvas {
-    width: 100%;
-    max-width: 100%;
-  }
+  .cheque-canvas { width: 100%; max-width: 100%; }
 }
 
-/* ===== PRINT-ONLY FIX: hide backgrounds, print only text ===== */
+/* ===================================================== */
+/* ====================  PRINT MODE  =================== */
+/* ===================================================== */
+
+/* If the user prints the current page (not the popup), hide UI. */
 @media print {
-  /* Hide any on-screen preview/background controls */
-  .cheque-canvas,
-  .preview-controls,
-  .screen-only {
+  :root{
+    --print-offset-x: 10mm;
+    --print-offset-y: 12mm;
+    --print-scale: 0.92;
+  }
+
+  @page { size: A4 portrait; margin: 0; }
+
+  html, body { margin:0 !important; padding:0 !important; background: transparent !important; }
+
+  /* hide on-screen UI */
+  header, nav, .cheque-title, .cheque-subtitle, .cheque-form, .button-row, .advanced-panel {
     display: none !important;
-    visibility: hidden !important;
   }
 
-  /* Remove shadows/margins so exact positions are kept */
-  .cheque-page,
-  .cheque-card,
-  .cheque-main,
-  .cheque-preview {
-    box-shadow: none !important;
-    background: #fff !important;
-    margin: 0 !important;
-    padding: 0 !important;
+  /* container helper if ever needed on-page */
+  .print-sheet {
+    position: relative;
+    width: 210mm;
+    height: 297mm;
+    overflow: hidden;
   }
 
-  @page {
-    size: A4;
-    margin: 0;
-  }
-
-  body {
-    background: #fff !important;
-    print-color-adjust: exact;
-    -webkit-print-color-adjust: exact;
+  .print-overlay {
+    position: absolute;
+    top: var(--print-offset-y);
+    left: var(--print-offset-x);
+    transform-origin: top left;
+    transform: scale(var(--print-scale));
+    max-width: none !important;
+    max-height: none !important;
   }
 }
