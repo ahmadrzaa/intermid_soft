@@ -10,7 +10,7 @@ import { createCheque } from "../../services/cheques";
 // Convert number to words (BHD style)
 function bhd(amount) {
   const words = [];
-  words[0] = "Zero"; // <-- CHANGED: capitalized to fix "Three Hundred Zero Only"
+  words[0] = "Zero"; // capitalized "Zero"
   words[1] = "One";
   words[2] = "Two";
   words[3] = "Three";
@@ -253,6 +253,8 @@ const NewCheque = () => {
 
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // background cheque image
     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
     ctx.fillStyle = "#000";
@@ -288,7 +290,7 @@ const NewCheque = () => {
     if (amountValue) {
       ctx.font = `${cfgValue.numFont}px Arial`;
       const parts = amountValue.toString().split(".");
-      const fils = parts[1] ? parts[1].padEnd(3, "0").slice(0, 3) : ""; // <-- CHANGED
+      const fils = parts[1] ? parts[1].padEnd(3, "0").slice(0, 3) : "";
       if (fils) {
         ctx.fillText(`${parts[0]}/${fils}`, cfgValue.numX, cfgValue.numY);
       } else {
@@ -360,12 +362,11 @@ const NewCheque = () => {
   };
 
   // Print: **NO BACKGROUND** — render only positioned text via a CANVAS OVERLAY
-  // This uses the exact same coordinates as the preview, so date/amount digits align.
+  // This is for printing directly on the physical cheque.
   const handlePrint = () => {
     const srcCanvas = canvasRef.current;
     if (!srcCanvas) return;
 
-    // Build a transparent overlay canvas (same size as preview) with ONLY text
     const overlay = document.createElement("canvas");
     overlay.width = srcCanvas.width;
     overlay.height = srcCanvas.height;
@@ -373,13 +374,13 @@ const NewCheque = () => {
     const ctx = overlay.getContext("2d");
     ctx.fillStyle = "#000";
 
-    // Payee
+    // NAME
     if (!hideBeneficiary && payee) {
       ctx.font = `${cfg.nameFont}px Arial`;
       ctx.fillText(payee.toUpperCase(), cfg.nameX, cfg.nameY);
     }
 
-    // Amount in words (3 lines)
+    // AMOUNT IN WORDS (3 LINES)
     if (amount) {
       const { line1, line2, line3 } = splitWordsForLines(amount);
       ctx.font = `${cfg.wordsFont}px Arial`;
@@ -390,16 +391,16 @@ const NewCheque = () => {
         ctx.fillText(line3, cfg.wordsX, cfg.wordsY + cfg.wordsLineGap * 2);
     }
 
-    // Amount numbers (pad fils to 3 digits)
+    // AMOUNT NUMBERS (200/- or 200/000)
     if (amount) {
       ctx.font = `${cfg.numFont}px Arial`;
       const parts = amount.toString().split(".");
-      const fils = parts[1] ? parts[1].padEnd(3, "0").slice(0, 3) : ""; // <-- CHANGED
+      const fils = parts[1] ? parts[1].padEnd(3, "0").slice(0, 3) : "";
       if (fils) ctx.fillText(`${parts[0]}/${fils}`, cfg.numX, cfg.numY);
       else ctx.fillText(`${parts[0]}/-`, cfg.numX, cfg.numY);
     }
 
-    // Date digits
+    // DATE DIGITS (DDMMYYYY)
     if (date) {
       const [y, m, d] = date.split("-");
       if (y && m && d) {
@@ -415,7 +416,6 @@ const NewCheque = () => {
 
     const dataUrl = overlay.toDataURL("image/png");
 
-    // Open a clean print window with zero margins; place the overlay in mm
     const win = window.open("", "_blank");
     if (!win) return;
 
@@ -428,10 +428,9 @@ const NewCheque = () => {
             @page { size: A4 portrait; margin: 0; }
             html,body { margin:0; padding:0; background:transparent; }
             :root{
-              /* tweak these for micro-adjustments on a given printer */
-              --print-offset-x: 10mm;   /* left offset */
-              --print-offset-y: 12mm;   /* top offset  */
-              --print-scale: 0.92;      /* 1.00 = no scale; reduce if right edge clips */
+              --print-offset-x: 10mm;
+              --print-offset-y: 12mm;
+              --print-scale: 0.92;
             }
             .print-sheet{
               position:relative;
@@ -463,12 +462,12 @@ const NewCheque = () => {
     win.document.close();
   };
 
-  // NEW: Print full cheque image + text (for PDF / system preview)
+  // Print WITH cheque template (for PDF / test print)
   const handlePrintWithTemplate = () => {
     const srcCanvas = canvasRef.current;
     if (!srcCanvas) return;
 
-    const dataUrl = srcCanvas.toDataURL("image/png");
+    const dataUrl = srcCanvas.toDataURL("image/png"); // full cheque image + text
 
     const win = window.open("", "_blank");
     if (!win) return;
@@ -493,10 +492,10 @@ const NewCheque = () => {
             }
             .print-img {
               position:absolute;
-              top:10mm;          /* adjust if needed */
-              left:10mm;         /* adjust if needed */
+              top:10mm;
+              left:10mm;
               transform-origin:top left;
-              transform:scale(0.92); /* same idea as overlay scale */
+              transform:scale(0.92);
               max-width:none;
               max-height:none;
             }
@@ -718,7 +717,7 @@ const NewCheque = () => {
                 <span>Download</span>
               </button>
 
-              {/* OLD behaviour: print only text on physical cheque */}
+              {/* Physical cheque: text only */}
               <button
                 type="button"
                 className="btn btn-print"
@@ -730,7 +729,7 @@ const NewCheque = () => {
                 <span>Print (cheque only)</span>
               </button>
 
-              {/* NEW button: full template for PDF / preview */}
+              {/* Test / PDF: with background template */}
               <button
                 type="button"
                 className="btn btn-print"
