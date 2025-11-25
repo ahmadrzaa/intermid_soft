@@ -277,7 +277,6 @@
 
 /* ===== PRINT-ONLY FIX: hide backgrounds, print only text ===== */
 @media print {
-  /* Hide any on-screen preview/background controls */
   .cheque-canvas,
   .preview-controls,
   .screen-only {
@@ -285,7 +284,6 @@
     visibility: hidden !important;
   }
 
-  /* Remove shadows/margins so exact positions are kept */
   .cheque-page,
   .cheque-card,
   .cheque-main,
