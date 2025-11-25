@@ -1,0 +1,447 @@
+/* frontend/src/pages/auth/auth.css
+   INTERMID premium auth (Login / Register)
+   Dark cinematic background + glowing card
+   Uses same fonts as home (Orbitron + Space Grotesk)
+*/
+
+@import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700&family=Space+Grotesk:wght@400;500;600&display=swap");
+
+.auth-root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+
+  /* dark gradient + soft colored glows */
+  background:
+    radial-gradient(circle at 12% 0%, rgba(46, 184, 139, 0.23) 0, transparent 55%),
+    radial-gradient(circle at 88% 100%, rgba(59, 130, 246, 0.25) 0, transparent 55%),
+    linear-gradient(135deg, #020617, #020617 40%, #030712 100%);
+  background-size: 140% 140%;
+  animation: authBgDrift 26s ease-in-out infinite alternate;
+
+  font-family: "Space Grotesk", system-ui, -apple-system, BlinkMacSystemFont,
+    "SF Pro Text", "Segoe UI", sans-serif;
+  color: #e5e7eb;
+}
+
+/* main area centers the card */
+.auth-main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 72px 16px 80px;
+}
+
+/* ================== CARD ================== */
+
+.auth-card {
+  width: 100%;
+  max-width: 520px;
+
+  /* glass / neon card */
+  background: radial-gradient(circle at 0 0, rgba(15, 23, 42, 0.96), #020617);
+  border-radius: 16px;
+  box-shadow:
+    0 0 0 1px rgba(148, 163, 184, 0.28),
+    0 22px 48px rgba(15, 23, 42, 0.95);
+  padding: 28px 36px 30px;
+  position: relative;
+  overflow: hidden;
+
+  animation: authCardIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.05s both;
+}
+
+/* subtle glow line on top of card */
+.auth-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    linear-gradient(
+      120deg,
+      rgba(46, 184, 139, 0.26),
+      rgba(59, 130, 246, 0.16),
+      transparent 65%
+    );
+  opacity: 0.55;
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+
+/* small aura behind card */
+.auth-card::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -120px;
+  width: 420px;
+  height: 220px;
+  transform: translateX(-50%);
+  background: radial-gradient(
+    circle,
+    rgba(46, 184, 139, 0.18),
+    transparent 60%
+  );
+  filter: blur(6px);
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+/* ================== TOP TEXT ================== */
+
+.auth-heading {
+  margin: 0 0 22px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: #9ca3af;
+  font-family: "Orbitron", system-ui, sans-serif;
+}
+
+/* If you have a main title inside heading (e.g. <strong>) */
+.auth-heading strong {
+  display: block;
+  margin-top: 6px;
+  font-size: 18px;
+  letter-spacing: 0.3em;
+  color: #f9fafb;
+}
+
+/* ========== NEW: ROLE SWITCH (Admin / Manager / Staff) ========== */
+
+.auth-role-switch {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin: 0 0 10px;
+}
+
+.auth-role-pill {
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.7);
+  background: rgba(15, 23, 42, 0.95);
+  color: #9ca3af;
+  padding: 5px 14px;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  cursor: pointer;
+  font-family: "Space Grotesk", system-ui, -apple-system, "Segoe UI", sans-serif;
+  transition:
+    background 0.18s ease,
+    color 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.18s ease;
+}
+
+.auth-role-pill.is-active {
+  background: #2eb88b;
+  color: #020617;
+  border-color: #2eb88b;
+  box-shadow: 0 12px 26px rgba(46, 184, 139, 0.6);
+  transform: translateY(-1px);
+}
+
+.auth-role-note {
+  margin: 0 0 16px;
+  text-align: center;
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.auth-role-note strong {
+  color: #f9fafb;
+}
+
+/* ================== FORM ================== */
+
+.auth-form {
+  display: grid;
+  gap: 18px;
+}
+
+.auth-field {
+  display: grid;
+  gap: 6px;
+}
+
+.auth-label {
+  font-size: 13px;
+  color: #cbd5f5;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* underline input style + icons on the right */
+
+.input-line {
+  position: relative;
+  padding-top: 2px;
+}
+
+.input-line input,
+.input-line select {
+  width: 100%;
+  height: 34px;
+  border: none;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.6);
+  font-size: 14px;
+  color: #f9fafb;
+  outline: none;
+  background: transparent;
+  padding-right: 28px;
+  font-family: "Space Grotesk", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+.input-line input::placeholder {
+  color: rgba(148, 163, 184, 0.8);
+}
+
+.input-line input:focus,
+.input-line select:focus {
+  border-bottom-color: #2eb88b;
+  box-shadow: 0 1px 0 0 #2eb88b;
+}
+
+/* icon / eye button on the right of input */
+
+.input-icon-right {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 14px;
+  color: #9ca3af;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 0;
+  background: none;
+  cursor: pointer;
+  font-size: 15px;
+  color: #9ca3af;
+  padding: 0;
+}
+
+/* ================== ERROR BOX ================== */
+
+.auth-error {
+  background: rgba(248, 113, 113, 0.12);
+  color: #fecaca;
+  border: 1px solid rgba(248, 113, 113, 0.7);
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+/* ================== ROW: REMEMBER + BUTTON ================== */
+
+.auth-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.auth-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #e5e7eb;
+}
+
+.auth-checkbox input {
+  width: 14px;
+  height: 14px;
+}
+
+/* ================== BUTTONS ================== */
+
+.auth-btn {
+  border: none;
+  border-radius: 999px;
+  padding: 10px 28px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  white-space: nowrap;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-family: "Space Grotesk", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+/* Brand green same as hero CTA */
+.auth-btn-primary {
+  background: #2eb88b;
+  color: #ffffff;
+  box-shadow: 0 16px 32px rgba(46, 184, 139, 0.55);
+  border: 1px solid rgba(15, 23, 42, 0.85);
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.auth-btn-primary:hover {
+  background: #020617;
+  color: #2eb88b;
+  border-color: #2eb88b;
+  box-shadow: 0 20px 40px rgba(46, 184, 139, 0.7);
+  transform: translateY(-1px);
+}
+
+.auth-btn-primary:disabled {
+  opacity: 0.6;
+  cursor: default;
+  box-shadow: none;
+}
+
+/* ================== UNDER-CARD LINKS / TEXT ================== */
+
+.auth-link-button {
+  margin-top: 8px;
+  padding: 0;
+  border: none;
+  background: none;
+  font-size: 13px;
+  color: #38bdf8;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.auth-separator {
+  margin: 14px 0 8px;
+  text-align: center;
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.auth-link-row {
+  margin-top: 4px;
+  text-align: center;
+  font-size: 13px;
+  color: #e5e7eb;
+}
+
+.auth-link-row a {
+  color: #38bdf8;
+  text-decoration: none;
+}
+
+.auth-link-row a:hover {
+  text-decoration: underline;
+}
+
+/* ================== REGISTER LAYOUT ================== */
+
+.auth-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.auth-inline {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.4fr);
+  gap: 12px;
+}
+
+/* select for country code */
+
+.input-line select {
+  padding-right: 10px;
+  padding-left: 0;
+  font-size: 13px;
+}
+
+/* ================== TERMS TEXT ================== */
+
+.auth-terms {
+  margin-top: 10px;
+  font-size: 12px;
+  color: #94a3b8;
+  text-align: center;
+}
+
+.auth-terms a,
+.auth-terms button {
+  color: #38bdf8;
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 12px;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+/* ================== FOOTER YEAR ================== */
+
+.auth-footer {
+  font-size: 11px;
+  color: #6b7280;
+  text-align: center;
+  padding: 6px 16px 16px;
+}
+
+/* ================== RESPONSIVE ================== */
+
+@media (max-width: 600px) {
+  .auth-card {
+    padding-inline: 20px;
+    border-radius: 14px;
+  }
+
+  .auth-grid-2,
+  .auth-inline {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .auth-btn {
+    align-self: stretch;
+    width: 100%;
+    text-align: center;
+  }
+}
+
+/* ================== ANIMATIONS ================== */
+
+@keyframes authBgDrift {
+  0% {
+    background-position: 0% 0%;
+  }
+  50% {
+    background-position: 40% 40%;
+  }
+  100% {
+    background-position: 100% 100%;
+  }
+}
+
+@keyframes authCardIn {
+  0% {
+    opacity: 0;
+    transform: translateY(18px) scale(0.97);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}

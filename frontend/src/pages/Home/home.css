@@ -1,0 +1,514 @@
+/* frontend/src/pages/Home/home.css */
+
+/* Futuristic font stack */
+@import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700&family=Space+Grotesk:wght@400;500;600&display=swap");
+
+.home-root,
+.home-root * {
+  box-sizing: border-box;
+}
+
+/* PAGE BACKGROUND – warm mixed color */
+.home-root {
+  min-height: 100vh;
+
+  /* white / light-beige glow behind image + warm gradient */
+  background:
+    radial-gradient(
+      circle at 78% 52%,
+      rgba(255, 255, 255, 0.96) 0,
+      rgba(246, 233, 215, 0.92) 28%,
+      rgba(246, 233, 215, 0) 62%
+    ),
+    radial-gradient(circle at 10% 0%, #f3e3cf 0, #d8c1a8 32%, transparent 60%),
+    radial-gradient(circle at 90% 100%, #b99a7e 0, #8b725a 40%, #4c3f35 80%),
+    linear-gradient(135deg, #cbb49b 0%, #a38c75 40%, #53433a 100%);
+
+  background-attachment: fixed;
+  background-size: 140% 140%;
+  animation: homeBgDrift 26s ease-in-out infinite alternate;
+
+  color: #111827;
+
+  font-family: "Space Grotesk", system-ui, -apple-system, BlinkMacSystemFont,
+    "SF Pro Text", "Segoe UI", sans-serif;
+}
+
+/* shared container */
+.home-container {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding-inline: 32px;
+}
+
+/* ===================== NAVBAR ===================== */
+/* Used only on Home landing */
+
+.home-nav {
+  position: sticky;
+  top: 0;
+  z-index: 60; /* above everything */
+
+  background: linear-gradient(
+    120deg,
+    rgba(4, 7, 14, 0.98) 0%,
+    rgba(9, 12, 23, 0.99) 40%,
+    rgba(15, 23, 42, 0.98) 100%
+  );
+  background-size: 220% 100%;
+  animation: homeNavSweep 22s ease-in-out infinite alternate;
+
+  border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(18px);
+}
+
+.home-nav-inner {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  height: 68px;
+}
+
+.home-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+}
+
+.home-brand-logo {
+  height: 28px;
+  width: auto;
+  display: block;
+  /* white logo pops on dark header */
+  filter: drop-shadow(0 0 10px rgba(15, 23, 42, 0.9));
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.home-brand:hover .home-brand-logo {
+  transform: translateY(-1px) scale(1.02);
+  filter: drop-shadow(0 0 14px rgba(46, 184, 139, 0.8));
+}
+
+/* optional tiny label text beside logo if you add it in JSX */
+.home-brand-text {
+  font-size: 10px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: #9ca3af;
+  font-family: "Orbitron", system-ui, sans-serif;
+  white-space: nowrap;
+}
+
+/* center menu */
+
+.home-menu {
+  display: flex;
+  justify-content: center;
+  gap: 28px;
+}
+
+.home-menu-link {
+  border: none;
+  background: transparent;
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #d1d5db;
+  cursor: pointer;
+  padding: 0;
+  position: relative;
+  font-family: "Space Grotesk", system-ui, -apple-system, BlinkMacSystemFont,
+    "SF Pro Text", "Segoe UI", sans-serif;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.6);
+}
+
+.home-menu-link:hover {
+  color: #f9fafb;
+}
+
+.home-menu-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -6px;
+  width: 0;
+  height: 1px;
+  background: #2eb88b;
+  transition: width 0.18s ease-out;
+}
+
+.home-menu-link:hover::after {
+  width: 100%;
+}
+
+/* right side */
+
+.home-nav-right {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.home-login-link {
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #e5e7eb;
+  text-decoration: none;
+  font-family: "Space Grotesk", system-ui, -apple-system, BlinkMacSystemFont,
+    "SF Pro Text", "Segoe UI", sans-serif;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.7);
+  transition: color 0.18s ease, transform 0.18s ease;
+}
+
+.home-login-link:hover {
+  color: #bbf7d0;
+  transform: translateY(-1px);
+}
+
+/* ===================== HERO ===================== */
+
+.home-hero {
+  min-height: calc(100vh - 68px);
+  display: flex;
+  align-items: center;
+}
+
+.home-hero-inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  gap: 64px;
+  padding-block: 72px;
+}
+
+.home-copy {
+  max-width: 560px;
+  animation: homeFadeLeft 0.7s ease-out both;
+}
+
+/* small label above heading */
+.home-tagline {
+  margin: 0 0 12px;
+  font-size: 11px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: #6b7280;
+  font-family: "Orbitron", system-ui, sans-serif;
+  opacity: 0.9;
+}
+
+.home-tagline::before {
+  content: "";
+  display: inline-block;
+  width: 32px;
+  height: 1px;
+  margin-right: 10px;
+  background: linear-gradient(to right, #9ca3af, transparent);
+  transform: translateY(-0.3em);
+}
+
+/* MAIN HERO HEADING */
+.home-title {
+  margin: 0 0 18px;
+  font-size: 44px;
+  line-height: 1.1;
+  font-family: "Orbitron", system-ui, sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-weight: 600;
+  color: #f9fafb;
+  text-rendering: geometricPrecision;
+  text-shadow: 0 4px 28px rgba(15, 23, 42, 0.7);
+  animation: homeTitleIn 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
+
+  position: relative;
+  overflow: hidden; /* for shine animation */
+}
+
+.home-title span {
+  color: #2eb88b;
+}
+
+/* subtle premium “shine” sweep over heading */
+.home-title::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -130%;
+  width: 45%;
+  height: 100%;
+  background: linear-gradient(
+    120deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.22) 45%,
+    transparent 90%
+  );
+  mix-blend-mode: screen;
+  pointer-events: none;
+  animation: homeTitleShine 7s linear infinite;
+}
+
+/* paragraph block style – DARK, NO BLUR */
+.home-subtitle {
+  margin: 0 0 26px;
+  font-size: 15px;
+  line-height: 1.7;
+  color: #1f2933; /* dark text for clear readability */
+  max-width: 520px;
+  font-family: "Space Grotesk", system-ui, -apple-system, BlinkMacSystemFont,
+    "SF Pro Text", "Segoe UI", sans-serif;
+  letter-spacing: 0.01em;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6); /* slight crisp, not blurry */
+  animation: homeSubtitleIn 0.95s ease-out 0.18s both;
+}
+
+/* CTA BUTTON – exact green + hover behaviour */
+/* CTA BUTTON – exact green + hover behaviour */
+.home-cta {
+  border-radius: 5px;
+  padding: 14px 40px;
+  border: 2px solid #2eb88b;
+  background-color: #2eb88b;
+  color: rgba(255, 255, 255, 0.99);
+
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  box-shadow: 0 18px 38px rgba(46, 184, 139, 0.55);
+  -webkit-transition-duration: 0.2s;
+  transition-duration: 0.2s;
+  -webkit-transition-property: all !important;
+  transition-property: all !important;
+
+  /* remove underline on Link */
+  text-decoration: none;
+}
+
+
+/* hover = black background, green border + text */
+.home-cta:hover {
+  background-color: #020617;
+  color: #2eb88b;
+  border-color: #2eb88b;
+  box-shadow: 0 22px 45px rgba(46, 184, 139, 0.65);
+  transform: translateY(-1px);
+}
+
+.home-cta:focus-visible {
+  outline: 2px solid #bbf7d0;
+  outline-offset: 3px;
+}
+
+/* bottom note – darker + slightly stronger for “Admin / Manager / Staff” */
+.home-footnote {
+  margin-top: 14px;
+  font-size: 13px;
+  color: #111827;        /* dark text */
+  opacity: 0.9;
+  letter-spacing: 0.03em;
+}
+
+.home-footnote strong {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+/* IMAGE – only your original illustration, no extra box */
+
+.home-visual {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  animation: homeFadeRight 0.8s ease-out both;
+}
+
+.home-visual-img {
+  max-width: 480px;
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: contain;
+  filter: drop-shadow(0 18px 28px rgba(15, 23, 42, 0.45));
+  transform-origin: center;
+  animation:
+    homeImageIntro 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.35s both,
+    homeImageFloat 16s ease-in-out 0.9s infinite alternate;
+}
+
+/* ===================== ANIMATIONS ===================== */
+
+@keyframes homeFadeLeft {
+  0% {
+    opacity: 0;
+    transform: translateX(-26px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes homeFadeRight {
+  0% {
+    opacity: 0;
+    transform: translateX(26px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* slow drifting 2D background */
+@keyframes homeBgDrift {
+  0% {
+    background-position: 0% 0%;
+  }
+  50% {
+    background-position: 50% 40%;
+  }
+  100% {
+    background-position: 100% 100%;
+  }
+}
+
+/* heading + paragraph entrance */
+@keyframes homeTitleIn {
+  0% {
+    opacity: 0;
+    transform: translateY(18px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes homeSubtitleIn {
+  0% {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* heading shine sweep */
+@keyframes homeTitleShine {
+  0% {
+    left: -130%;
+  }
+  60% {
+    left: 130%;
+  }
+  100% {
+    left: 130%;
+  }
+}
+
+/* image intro + gentle float (no rotation) */
+@keyframes homeImageIntro {
+  0% {
+    opacity: 0;
+    transform: translateY(18px) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes homeImageFloat {
+  0% {
+    transform: translateY(4px);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+  100% {
+    transform: translateY(2px);
+  }
+}
+
+/* navbar gradient sweep */
+@keyframes homeNavSweep {
+  0% {
+    background-position: 0% 0%;
+  }
+  50% {
+    background-position: 70% 0%;
+  }
+  100% {
+    background-position: 140% 0%;
+  }
+}
+
+/* ===================== RESPONSIVE ===================== */
+
+@media (max-width: 1024px) {
+  .home-container {
+    padding-inline: 24px;
+  }
+
+  .home-hero-inner {
+    grid-template-columns: 1fr;
+    gap: 40px;
+    padding-block: 52px;
+  }
+
+  .home-visual {
+    justify-content: center;
+  }
+
+  .home-title {
+    font-size: 36px;
+    letter-spacing: 0.14em;
+  }
+}
+
+@media (max-width: 768px) {
+  .home-container {
+    padding-inline: 18px;
+  }
+
+  .home-nav-inner {
+    grid-template-columns: auto 1fr auto;
+  }
+
+  .home-menu {
+    gap: 18px;
+  }
+
+  .home-menu-link {
+    font-size: 11px;
+  }
+
+  .home-title {
+    font-size: 30px;
+    letter-spacing: 0.12em;
+  }
+}
+
+@media (max-width: 600px) {
+  .home-nav-inner {
+    grid-template-columns: auto auto;
+  }
+
+  .home-menu {
+    display: none; /* small screens: logo + login only */
+  }
+
+  .home-title {
+    font-size: 26px;
+  }
+}

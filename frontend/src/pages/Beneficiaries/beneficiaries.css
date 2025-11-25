@@ -1,0 +1,526 @@
+/* frontend/src/pages/Beneficiaries/beneficiaries.css */
+
+@import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700&family=Space+Grotesk:wght@400;500;600&display=swap");
+
+.bene-root {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 20px 0 32px;
+  color: #0f172a;
+  font-family: "Space Grotesk", system-ui, -apple-system, BlinkMacSystemFont,
+    "SF Pro Text", "Segoe UI", sans-serif;
+}
+
+/* HEADER */
+
+.bene-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.bene-kicker {
+  font-size: 10px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: #9ca3af;
+  font-family: "Orbitron", system-ui, sans-serif;
+}
+
+.bene-title {
+  margin: 3px 0 4px;
+  font-size: 22px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: #111827;
+}
+
+.bene-subtitle {
+  margin: 0;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.bene-actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* BUTTONS */
+
+.bene-btn {
+  border-radius: 6px;
+  border: 1px solid transparent;
+  padding: 6px 14px;
+  font-size: 11px;
+  cursor: pointer;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 600;
+  font-family: "Space Grotesk", system-ui, -apple-system, "Segoe UI",
+    sans-serif;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition:
+    background 0.18s ease,
+    color 0.18s ease,
+    box-shadow 0.18s ease,
+    border-color 0.18s ease,
+    transform 0.18s ease;
+}
+
+.bene-btn-icon {
+  width: 15px;
+  height: 15px;
+}
+
+.bene-btn-primary {
+  background: #2eb88b;
+  color: #ffffff;
+  border-color: rgba(15, 23, 42, 0.3);
+  box-shadow: 0 12px 26px rgba(46, 184, 139, 0.55);
+}
+
+.bene-btn-primary:hover {
+  background: #020617;
+  color: #2eb88b;
+  border-color: #2eb88b;
+  box-shadow: 0 16px 32px rgba(46, 184, 139, 0.7);
+  transform: translateY(-1px);
+}
+
+.bene-btn-secondary {
+  background: #f9fafb;
+  color: #111827;
+  border-color: #d1d5db;
+}
+
+.bene-btn-secondary:hover {
+  border-color: #22c55e;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.18);
+  transform: translateY(-1px);
+}
+
+/* SECTIONS */
+
+.bene-section {
+  margin-bottom: 18px;
+}
+
+/* TOOLBAR */
+
+.bene-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+/* Search */
+
+.bene-search {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  flex: 1 1 260px;
+  max-width: 420px;
+}
+
+.bene-search-icon {
+  width: 14px;
+  height: 14px;
+  color: #9ca3af;
+}
+
+.bene-search input {
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 12px;
+  flex: 1;
+  color: #111827;
+}
+
+.bene-search input::placeholder {
+  color: #9ca3af;
+}
+
+/* Visibility filter chips */
+
+.bene-filter-group {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.bene-chip {
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  padding: 4px 10px;
+  font-size: 11px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  color: #374151;
+  transition:
+    background 0.16s ease,
+    border-color 0.16s ease,
+    color 0.16s ease,
+    box-shadow 0.16s ease;
+}
+
+.bene-chip-icon {
+  width: 13px;
+  height: 13px;
+}
+
+.bene-chip.is-active {
+  background: #dcfce7;
+  border-color: #22c55e;
+  color: #166534;
+  box-shadow: 0 6px 16px rgba(34, 197, 94, 0.35);
+}
+
+/* FORM CARD */
+
+.bene-form-card {
+  border-radius: 14px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  padding: 14px 14px 12px;
+  box-shadow:
+    0 0 0 1px rgba(15, 23, 42, 0.02),
+    0 14px 30px rgba(15, 23, 42, 0.06);
+}
+
+.bene-form-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.bene-form-header h2 {
+  font-size: 14px;
+  margin: 0;
+}
+
+.bene-form-close {
+  border: none;
+  background: transparent;
+  font-size: 16px;
+  cursor: pointer;
+  color: #6b7280;
+}
+
+.bene-form {
+  display: grid;
+  gap: 10px;
+}
+
+.bene-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+}
+
+.bene-field {
+  display: grid;
+  gap: 4px;
+}
+
+.bene-label {
+  font-size: 12px;
+  color: #6b7280;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* inputs */
+
+.bene-input-line {
+  position: relative;
+}
+
+.bene-input-line input,
+.bene-input-line textarea {
+  width: 100%;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  padding: 7px 10px;
+  font-size: 13px;
+  outline: none;
+  box-sizing: border-box;
+  background-color: #ffffff;
+  resize: vertical;
+}
+
+.bene-input-line input:focus,
+.bene-input-line textarea:focus {
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 1px rgba(79, 70, 229, 0.2);
+}
+
+.bene-input-icon {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 14px;
+  height: 14px;
+  color: #9ca3af;
+}
+
+/* toggle */
+
+.bene-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #4b5563;
+}
+
+.bene-toggle input {
+  width: 14px;
+  height: 14px;
+}
+
+/* form error + actions */
+
+.bene-form-error {
+  background: #fee2e2;
+  color: #7f1d1d;
+  border: 1px solid #fecaca;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+.bene-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* PANEL + TABLE */
+
+.bene-panel {
+  border-radius: 14px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  padding: 14px 14px 10px;
+  box-shadow:
+    0 0 0 1px rgba(15, 23, 42, 0.02),
+    0 14px 30px rgba(15, 23, 42, 0.06);
+}
+
+.bene-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.bene-panel-header h2 {
+  font-size: 14px;
+  margin: 0;
+}
+
+.bene-panel-hint {
+  font-size: 11px;
+  color: #6b7280;
+}
+
+/* error + empty */
+
+.bene-error {
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #fee2e2;
+  color: #7f1d1d;
+  font-size: 12px;
+  border: 1px solid #fecaca;
+  margin-bottom: 8px;
+}
+
+.bene-empty {
+  font-size: 13px;
+  color: #6b7280;
+  padding: 6px 0;
+}
+
+/* table */
+
+.bene-table-wrapper {
+  overflow-x: auto;
+}
+
+.bene-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.bene-table th,
+.bene-table td {
+  padding: 6px 8px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.bene-table th {
+  text-align: left;
+  font-weight: 600;
+  color: #6b7280;
+}
+
+.bene-table tr:last-child td {
+  border-bottom: none;
+}
+
+.bene-table tbody tr:hover td {
+  background: #f9fafb;
+}
+
+.bene-loading-cell {
+  text-align: center;
+  color: #6b7280;
+}
+
+/* cells */
+
+.bene-name-cell {
+  display: flex;
+  flex-direction: column;
+}
+
+.bene-name {
+  font-weight: 600;
+  color: #111827;
+}
+
+.bene-name-sub {
+  font-size: 11px;
+  color: #9ca3af;
+}
+
+.bene-notes-cell {
+  max-width: 260px;
+}
+
+.bene-created-cell {
+  font-size: 11px;
+  color: #6b7280;
+}
+
+/* visibility pill */
+
+.bene-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  border: 1px solid #e5e7eb;
+}
+
+.bene-pill-icon {
+  width: 13px;
+  height: 13px;
+}
+
+.bene-pill-visible {
+  background: #ecfdf5;
+  color: #166534;
+  border-color: #bbf7d0;
+}
+
+.bene-pill-hidden {
+  background: #fef2f2;
+  color: #b91c1c;
+  border-color: #fecaca;
+}
+
+/* actions */
+
+.bene-actions-cell {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.bene-icon-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 13px;
+  color: #374151;
+  transition:
+    background 0.16s ease,
+    border-color 0.16s ease,
+    transform 0.16s ease,
+    box-shadow 0.16s ease;
+}
+
+.bene-icon-btn:hover {
+  background: #ffffff;
+  border-color: #22c55e;
+  box-shadow: 0 6px 16px rgba(34, 197, 94, 0.18);
+  transform: translateY(-1px);
+}
+
+.bene-icon-btn-danger {
+  border-color: #fecaca;
+  color: #b91c1c;
+}
+
+.bene-icon-btn-danger:hover {
+  border-color: #ef4444;
+  box-shadow: 0 6px 16px rgba(239, 68, 68, 0.3);
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 900px) {
+  .bene-header-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .bene-actions {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .bene-btn {
+    flex: 1;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 640px) {
+  .bene-root {
+    padding: 16px 0 24px;
+  }
+
+  .bene-form-grid {
+    grid-template-columns: 1fr;
+  }
+}

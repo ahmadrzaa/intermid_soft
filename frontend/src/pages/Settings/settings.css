@@ -1,0 +1,177 @@
+/* frontend/src/pages/Settings/settings.css */
+
+@import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700&family=Space+Grotesk:wght@400;500;600&display=swap");
+
+.settings-root {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 20px 0 32px;
+  color: #0f172a;
+  font-family: "Space Grotesk", system-ui, -apple-system, BlinkMacSystemFont,
+    "SF Pro Text", "Segoe UI", sans-serif;
+}
+
+/* HEADER -------------------------------------------------- */
+
+.settings-header {
+  margin-bottom: 18px;
+}
+
+.settings-kicker {
+  font-size: 10px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: #9ca3af;
+  font-family: "Orbitron", system-ui, sans-serif;
+}
+
+.settings-title {
+  margin: 3px 0 4px;
+  font-size: 22px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: #111827;
+}
+
+.settings-subtitle {
+  margin: 0;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+/* GRID ---------------------------------------------------- */
+
+.settings-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: 18px;
+  align-items: flex-start;
+}
+
+/* CARDS --------------------------------------------------- */
+
+.settings-card {
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid #e5e7eb;
+  padding: 18px 20px 20px;
+  box-shadow:
+    0 0 0 1px rgba(15, 23, 42, 0.02),
+    0 14px 30px rgba(15, 23, 42, 0.06);
+}
+
+.settings-card-title {
+  margin: 0 0 4px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.settings-card-sub {
+  margin: 0 0 14px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+/* PROFILE TABLE ------------------------------------------- */
+
+.settings-profile-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.settings-profile-table tr + tr td {
+  border-top: 1px dashed #e5e7eb;
+}
+
+.settings-profile-label {
+  width: 72px;
+  padding: 6px 0;
+  color: #9ca3af;
+}
+
+.settings-profile-value {
+  padding: 6px 0;
+  color: #111827;
+}
+
+.settings-footnote {
+  margin-top: 10px;
+  font-size: 11px;
+  color: #6b7280;
+}
+
+/* PREFERENCES --------------------------------------------- */
+
+.settings-group {
+  margin-top: 10px;
+}
+
+.settings-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: #9ca3af;
+  margin-bottom: 6px;
+}
+
+/* Theme toggle pills */
+
+.settings-theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px;
+  border-radius: 999px;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+}
+
+.settings-pill {
+  min-width: 64px;
+  padding: 5px 14px;
+  border-radius: 999px;
+  border: none;
+  background: transparent;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  cursor: pointer;
+  color: #6b7280;
+}
+
+.settings-pill.is-active {
+  background: #020617;
+  color: #f9fafb;
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.4);
+}
+
+.settings-helper {
+  margin-top: 6px;
+  font-size: 11px;
+  color: #9ca3af;
+}
+
+/* cheque rules list */
+
+.settings-list {
+  margin: 4px 0 0 16px;
+  padding: 0;
+  font-size: 12px;
+  color: #4b5563;
+}
+
+.settings-list li + li {
+  margin-top: 4px;
+}
+
+/* RESPONSIVE ---------------------------------------------- */
+
+@media (max-width: 900px) {
+  .settings-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
