@@ -42,6 +42,40 @@ function toSafeUser(u) {
   return rest;
 }
 
+// ---------- AUTO-ADMIN SEED (runs on startup) ----------
+(function seedAutoAdmin() {
+  try {
+    const emailRaw = process.env.AUTO_ADMIN_EMAIL || "";
+    const password = process.env.AUTO_ADMIN_PASSWORD || "";
+    if (!emailRaw || !password) return; // nothing to seed
+
+    const email = String(emailRaw).trim().toLowerCase();
+    const name = (process.env.AUTO_ADMIN_NAME || "Auto Admin").trim();
+    const role = (process.env.AUTO_ADMIN_ROLE || "Admin").trim();
+
+    const users = readUsersSafe();
+    const exists = users.find((u) => u.email === email);
+    if (exists) return; // already there
+
+    const passwordHash = bcrypt.hashSync(password, 10);
+    const user = {
+      id: Date.now().toString(36),
+      name,
+      email,
+      mobile: "",
+      company: "",
+      role,
+      passwordHash,
+      createdAt: new Date().toISOString(),
+    };
+    users.push(user);
+    writeUsersSafe(users);
+    console.log("Auto-admin ensured:", email);
+  } catch (e) {
+    console.warn("Auto-admin seed skipped:", e.message);
+  }
+})();
+
 // ---------------- REGISTER ----------------
 r.post("/register", async (req, res) => {
   try {
@@ -109,7 +143,7 @@ r.post("/login", async (req, res) => {
     const ok = await bcrypt.compare(password, user.passwordHash || "");
     if (!ok) return res.status(401).json({ message: "Invalid credentials" });
 
-    // IMPORTANT: no role enforcement here (pill on UI won't block login)
+    // No role enforcement here
 
     const token = signToken({
       id: user.id,
