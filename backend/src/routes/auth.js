@@ -6,20 +6,19 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { requireAuth, signToken } from "../middleware/auth.js";
 
-// ----- file locations -----
+const r = Router();
+
+// ---------- file store paths ----------
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const DATA_DIR = path.join(__dirname, "..", "data");
 const USERS_FILE = path.join(DATA_DIR, "users.json");
 
-const r = Router();
-
-// ---- tiny file DB with safety ----
+// ensure file exists and is valid JSON
 function ensureUsersFile() {
   fs.mkdirSync(DATA_DIR, { recursive: true });
   if (!fs.existsSync(USERS_FILE)) fs.writeFileSync(USERS_FILE, "[]", "utf8");
 }
-
 function readUsersSafe() {
   ensureUsersFile();
   try {
@@ -27,12 +26,10 @@ function readUsersSafe() {
     if (!txt) return [];
     return JSON.parse(txt);
   } catch {
-    // if file is corrupted/empty -> reset
     fs.writeFileSync(USERS_FILE, "[]", "utf8");
     return [];
   }
 }
-
 function writeUsersSafe(arr) {
   const tmp = USERS_FILE + ".tmp";
   fs.writeFileSync(tmp, JSON.stringify(arr, null, 2), "utf8");
@@ -99,7 +96,7 @@ r.post("/register", async (req, res) => {
 // ---------------- LOGIN ----------------
 r.post("/login", async (req, res) => {
   try {
-    const { email = "", password = "", role } = req.body || {};
+    const { email = "", password = "" } = req.body || {};
     if (!email || !password) {
       return res.status(400).json({ message: "Email & password required" });
     }
@@ -109,14 +106,10 @@ r.post("/login", async (req, res) => {
     const user = users.find((u) => u.email === cleanEmail);
     if (!user) return res.status(401).json({ message: "Invalid credentials" });
 
-    const ok = await bcrypt.compare(password, user.passwordHash);
+    const ok = await bcrypt.compare(password, user.passwordHash || "");
     if (!ok) return res.status(401).json({ message: "Invalid credentials" });
 
-    if (role && role !== user.role) {
-      return res
-        .status(403)
-        .json({ message: `You are registered as ${user.role}, not ${role}.` });
-    }
+    // IMPORTANT: no role enforcement here (pill on UI won't block login)
 
     const token = signToken({
       id: user.id,
@@ -133,8 +126,7 @@ r.post("/login", async (req, res) => {
 
 // ---------------- ME ----------------
 r.get("/me", requireAuth, async (req, res) => {
-  const users = readUsersSafe();
-  const u = users.find((x) => x.id === req.user.id);
+  const u = readUsersSafe().find((x) => x.id === req.user.id);
   if (!u) return res.status(404).json({ message: "User not found" });
   return res.json(toSafeUser(u));
 });
