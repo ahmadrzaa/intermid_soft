@@ -1,94 +1,307 @@
-input#ch_name {
-  text-transform: uppercase;
+/* frontend/src/pages/Checks/new.css */
+
+.cheque-page {
+  /* Let the main layout handle background + footer */
+  padding: 24px 32px 32px;
+  background: transparent;
+  min-height: auto;
+  box-sizing: border-box;
 }
-.printModal{font-family:sans-serif;display:flex;text-align:center;font-weight:300;font-size:30px;left:0;top:0;position:absolute;color:#045fb4;width:100%;height:100%;background-color:hsla(0,0%,100%,.9)}.printClose{position:absolute;right:10px;top:10px}.printClose:before{content:"\00D7";font-family:Helvetica Neue,sans-serif;font-weight:100;line-height:1px;padding-top:.5em;display:block;font-size:2em;text-indent:1px;overflow:hidden;height:1.25em;width:1.25em;text-align:center;cursor:pointer}.printSpinner{margin-top:3px;margin-left:-40px;position:absolute;display:inline-block;width:25px;height:25px;border:2px solid #045fb4;border-radius:50%;animation:spin .75s linear infinite}.printSpinner:after,.printSpinner:before{left:-2px;top:-2px;display:none;position:absolute;content:"";width:inherit;height:inherit;border:inherit;border-radius:inherit}.printSpinner,.printSpinner:after,.printSpinner:before{display:inline-block;border-color:#045fb4 transparent transparent;animation-duration:1.2s}.printSpinner:before{transform:rotate(120deg)}.printSpinner:after{transform:rotate(240deg)}@keyframes spin{0%{transform:rotate(0deg)}to{transform:rotate(1turn)}}
-.cheque .site-wrapper {
-  background: linear-gradient(267deg,#91351e,#041568,#032a38,#703976)!important;
-  background-size: 200% 400%!important;
-  animation: gradient 15s ease infinite;
-  color: #fff;
+
+.cheque-title {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 4px;
 }
-canvas#cheque_img {
-  position: absolute;
-  left: -11px;
-  top: 10px;
-  transform: scale(.99);
+
+.cheque-subtitle {
+  margin-bottom: 16px;
+  font-size: 13px;
+  color: #6b7280;
 }
-canvas#cheque_img_back {
-  border: 1px solid #ddd;
-  box-shadow: 0px 0px 6px 0px #858080;
-  min-height: 287px;
-  background: #ffffff94;
-  border: 11px solid #ffff;
-  border-right: 0;
+
+.cheque-card {
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 0;
 }
-.print_cheque {
-  display: flex;
-  min-height: 100vh;
-  width: 100%;
-  align-items: center;
-  justify-content: space-evenly;
+
+.cheque-main {
+  display: grid;
+  grid-template-columns: minmax(280px, 360px) minmax(520px, 1fr);
+  gap: 24px;
+  align-items: flex-start;
 }
-.left_box {
+
+/* Left form */
+
+.cheque-form {
   display: flex;
   flex-direction: column;
-  margin-right: 1vw;
+  gap: 10px;
 }
-.left_box input {
-  display: block;
-  height: 40px;
-  width: 100%;
-  margin-bottom: 10px;
-  padding: 0 10px;
-  color: #000;
+
+.field-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #111827;
 }
-button#populate ,#download,#print,button{
-  height: 39px;
-  max-width: 100%;
-  text-transform: uppercase;
-  font-size: 16px;
-  background: #ddd;
-  border: 1px solid #000;
-  line-height: 40px;
-  color: #000;
-  padding: 0 15px;
-}
-select#company {
-  margin-bottom: 10px;
-  height: 35px;
-  padding: 0 10px;
-}
-.print_cheque input, .print_cheque select {
+
+.field-input {
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  padding: 8px 10px;
   font-size: 14px;
-  line-height: 35px;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+  background-color: #ffffff;
 }
-button i { margin-left: 5px; }
-button:hover { background: #fff !important; }
-.btns {
+
+.field-input:focus {
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 1px rgba(79, 70, 229, 0.2);
+}
+
+.field-textarea {
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  padding: 8px 10px;
+  font-size: 14px;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+  background-color: #ffffff;
+  min-height: 70px;
+  resize: vertical;
+}
+
+.field-textarea:focus {
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 1px rgba(79, 70, 229, 0.2);
+}
+
+.field-checkbox {
   display: flex;
   align-items: center;
-  justify-content: space-evenly;
+  gap: 6px;
+  font-size: 12px;
+  color: #4b5563;
 }
-.right_box { position: relative; }
-input#checkbox {
-  max-width: 15px;
-  height: 15px;
-  display: inline-block;
-  vertical-align: -webkit-baseline-middle;
-  line-height: 15px;
+
+/* SAVE / ERROR MESSAGES */
+
+.cheque-error {
+  margin-top: 4px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid #fecaca;
+  background: #fee2e2;
+  color: #7f1d1d;
+  font-size: 12px;
 }
-@media screen and (max-width:991px){
-  .print_cheque { flex-direction: column; margin-top: 5vh; }
-  .print_cheque input { width: 100%; }
-  .print_cheque #populate,.print_cheque #download,button#print,button#share {width: 100%;max-width: 100%;margin-bottom: 10px;}
-  .right_box canvas { zoom: 60%; }
-  .left_box { width: 75%; }
-  .print_cheque { min-height: 100vh; }
+
+.cheque-success {
+  margin-top: 4px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid #bbf7d0;
+  background: #dcfce7;
+  color: #166534;
+  font-size: 12px;
 }
-@media screen and (max-width:767px){
-  .right_box canvas { zoom: 45%; }
-  .btns  button { font-size: 0px !important; }
-  .btns  button i { font-size: 18px !important; vertical-align: middle; }
-  .left_box h3 { font-size: 20px; }
-  .left_box { width: 80%; }
+
+/* Buttons – glass effect */
+
+.button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.btn {
+  flex: 1 1 110px;
+  height: 40px;
+  border-radius: 10px; /* rectangular with slight rounding */
+  border: 1px solid rgba(148, 163, 184, 0.7);
+  background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.15),
+      rgba(148, 163, 184, 0.12)
+    );
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: #111827;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 14px;
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.12);
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.12s ease,
+    background 0.12s ease,
+    border-color 0.12s ease;
+}
+
+.btn:hover {
+  background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.2),
+      rgba(148, 163, 184, 0.2)
+    );
+  border-color: rgba(79, 70, 229, 0.7);
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.18);
+  transform: translateY(-1px);
+}
+
+.btn:active {
+  transform: translateY(0);
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.18);
+}
+
+.btn-icon {
+  font-size: 15px;
+  line-height: 1;
+  display: inline-flex;
+}
+
+/* Specific buttons */
+.btn-save {
+  border-color: rgba(34, 197, 94, 0.9);
+  background: linear-gradient(
+    135deg,
+    rgba(34, 197, 94, 0.15),
+    rgba(22, 163, 74, 0.1)
+  );
+}
+.btn-save:hover {
+  border-color: rgba(22, 163, 74, 1);
+}
+.btn-download {}
+.btn-print {}
+.btn-share {}
+
+/* Advanced calibration */
+
+.advanced-toggle {
+  margin-top: 8px;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.advanced-panel {
+  margin-top: 10px;
+  padding: 10px 10px 12px;
+  border-radius: 10px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.advanced-panel h3 {
+  font-size: 12px;
+  font-weight: 700;
+  margin: 4px 0;
+}
+
+.advanced-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  font-size: 12px;
+}
+
+.advanced-input {
+  width: 70px;
+  padding: 4px 6px;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  font-size: 12px;
+  box-sizing: border-box;
+}
+
+.advanced-input.disabled {
+  background: #f3f4f6;
+}
+
+/* Right preview */
+
+.cheque-preview {
+  width: 100%;
+  overflow: visible;
+  display: flex;
+  justify-content: center; /* center the cheque */
+}
+
+/* Desktop: slightly smaller than the column width */
+.cheque-canvas {
+  width: 90%; /* make cheque a bit smaller */
+  max-width: 900px; /* prevent it from getting too wide */
+  height: auto;
+  display: block;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.16);
+  background: #ffffff;
+}
+
+/* Responsive */
+@media (max-width: 960px) {
+  .cheque-main {
+    grid-template-columns: 1fr;
+  }
+
+  .cheque-page {
+    padding: 16px 16px 24px;
+  }
+}
+
+/* Mobile / tablet – use full width for clarity */
+@media (max-width: 1024px) {
+  .cheque-canvas {
+    width: 100%;
+    max-width: 100%;
+  }
+}
+
+/* ===== PRINT-ONLY FIX: hide backgrounds, print only text ===== */
+@media print {
+  .cheque-canvas,
+  .preview-controls,
+  .screen-only {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
+  .cheque-page,
+  .cheque-card,
+  .cheque-main,
+  .cheque-preview {
+    box-shadow: none !important;
+    background: #fff !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  @page {
+    size: A4;
+    margin: 0;
+  }
+
+  body {
+    background: #fff !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
 }
