@@ -198,7 +198,7 @@ const NewCheque = () => {
   const imgRef = useRef(null);
   const navigate = useNavigate();
 
-  // Track image size so print overlay uses identical coordinates
+  // Track image size (if you ever need it for more advanced scaling)
   const [imgSize, setImgSize] = useState({ w: 0, h: 0 });
 
   // CLIENT + SYSTEM FIELDS ---------------------------------
@@ -372,6 +372,7 @@ const NewCheque = () => {
     overlay.height = srcCanvas.height;
 
     const ctx = overlay.getContext("2d");
+    ctx.clearRect(0, 0, overlay.width, overlay.height);
     ctx.fillStyle = "#000";
 
     // NAME
@@ -419,6 +420,10 @@ const NewCheque = () => {
     const win = window.open("", "_blank");
     if (!win) return;
 
+    // NOTE:
+    // - White background
+    // - Only overlay image (text), no cheque template
+    // - Use CSS variables for offset + scale so you can fine-tune for your printer
     win.document.write(`
       <html>
         <head>
@@ -426,26 +431,32 @@ const NewCheque = () => {
           <title>Print Cheque Overlay</title>
           <style>
             @page { size: A4 portrait; margin: 0; }
-            html,body { margin:0; padding:0; background:transparent; }
-            :root{
+            html, body {
+              margin: 0;
+              padding: 0;
+              background: #ffffff;
+            }
+            :root {
+              /* Adjust these 3 values when calibrating for the physical printer */
               --print-offset-x: 10mm;
               --print-offset-y: 12mm;
               --print-scale: 0.92;
             }
-            .print-sheet{
-              position:relative;
-              width:210mm;
-              height:297mm;
-              overflow:hidden;
+            .print-sheet {
+              position: relative;
+              width: 210mm;
+              height: 297mm;
+              overflow: hidden;
+              background: #ffffff;
             }
-            .print-overlay{
-              position:absolute;
-              top:var(--print-offset-y);
-              left:var(--print-offset-x);
-              transform-origin:top left;
-              transform:scale(var(--print-scale));
-              max-width:none;
-              max-height:none;
+            .print-overlay {
+              position: absolute;
+              top: var(--print-offset-y);
+              left: var(--print-offset-x);
+              transform-origin: top left;
+              transform: scale(var(--print-scale));
+              max-width: none;
+              max-height: none;
             }
           </style>
         </head>
@@ -454,7 +465,11 @@ const NewCheque = () => {
             <img class="print-overlay" src="${dataUrl}" />
           </div>
           <script>
-            window.onload = function(){ window.focus(); window.print(); window.close(); };
+            window.onload = function () {
+              window.focus();
+              window.print();
+              window.close();
+            };
           </script>
         </body>
       </html>
@@ -479,25 +494,25 @@ const NewCheque = () => {
           <title>Print Cheque (with template)</title>
           <style>
             @page { size: A4 portrait; margin: 0; }
-            html,body {
-              margin:0;
-              padding:0;
-              background:#ffffff;
+            html, body {
+              margin: 0;
+              padding: 0;
+              background: #ffffff;
             }
             .print-sheet {
-              position:relative;
-              width:210mm;
-              height:297mm;
-              overflow:hidden;
+              position: relative;
+              width: 210mm;
+              height: 297mm;
+              overflow: hidden;
             }
             .print-img {
-              position:absolute;
-              top:10mm;
-              left:10mm;
-              transform-origin:top left;
-              transform:scale(0.92);
-              max-width:none;
-              max-height:none;
+              position: absolute;
+              top: 10mm;
+              left: 10mm;
+              transform-origin: top left;
+              transform: scale(0.92);
+              max-width: none;
+              max-height: none;
             }
           </style>
         </head>
@@ -506,7 +521,11 @@ const NewCheque = () => {
             <img class="print-img" src="${dataUrl}" />
           </div>
           <script>
-            window.onload = function(){ window.focus(); window.print(); window.close(); };
+            window.onload = function () {
+              window.focus();
+              window.print();
+              window.close();
+            };
           </script>
         </body>
       </html>
