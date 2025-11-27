@@ -305,16 +305,32 @@
       ctx_b.drawImage(img, 0, 0);
     }
 
-    jQuery(document).ready(function() {
-      const cfg = loadCalibration();
-      applyCfgToInputs(cfg);
-      draw_canvas_with_cfg(cfg);
+          jQuery(document).ready(function() {
+          const cfg = loadCalibration();
+          applyCfgToInputs(cfg);
 
-      const start_date = document.getElementById('ch_date');
-      if (start_date && !start_date.value) {
-        start_date.value = new Date().toISOString().split('T')[0];
-      }
-    });
+          // make sure background image is fully loaded before drawing
+          const img = document.getElementById('temp_img');
+
+          function safeDraw() {
+            // only draw if the image has actually loaded
+            if (!img || !img.complete || img.naturalWidth === 0) return;
+            draw_canvas_with_cfg(cfg);
+          }
+
+          // when image finishes loading, draw the cheque template
+          if (img) {
+            img.onload = safeDraw;
+            // if it’s already cached/loaded, draw immediately
+            safeDraw();
+          }
+
+          const start_date = document.getElementById('ch_date');
+          if (start_date && !start_date.value) {
+            start_date.value = new Date().toISOString().split('T')[0];
+          }
+        });
+
 
     function bhd(amount){
       var words = new Array();
