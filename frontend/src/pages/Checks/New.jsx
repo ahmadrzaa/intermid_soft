@@ -5,12 +5,12 @@ import { useNavigate } from "react-router-dom";
 import "./new.css";
 import { createCheque } from "../../services/cheques";
 
-// ---------- helpers ----------
+// ---------- helpers (from client logic, adapted) ----------
 
 // Convert number to words (BHD style)
 function bhd(amount) {
   const words = [];
-  words[0] = "Zero"; // capitalized "Zero"
+  words[0] = "Zero";
   words[1] = "One";
   words[2] = "Two";
   words[3] = "Three";
@@ -94,21 +94,13 @@ function bhd(amount) {
         words_string += "Billion ";
       }
 
-      if (
-        i === 4 &&
-        value === 0 &&
-        (n_array[i - 1] > 0 || n_array[i - 2] > 0)
-      ) {
+      if (i === 4 && value === 0 && (n_array[i - 1] > 0 || n_array[i - 2] > 0)) {
         words_string += "Million ";
       } else if (i === 4 && value !== 0) {
         words_string += "Million ";
       }
 
-      if (
-        i === 7 &&
-        value === 0 &&
-        (n_array[i - 1] > 0 || n_array[i - 2] > 0)
-      ) {
+      if (i === 7 && value === 0 && (n_array[i - 1] > 0 || n_array[i - 2] > 0)) {
         words_string += "Thousand ";
       } else if (i === 7 && value !== 0) {
         words_string += "Thousand ";
@@ -146,32 +138,44 @@ function formatAmountInWords(rawAmount) {
   return `${wordsInt} Only`;
 }
 
-// Default calibration tuned to your BBK cheque
+// Default calibration copied from old client code
 const DEFAULT_CFG = {
-  // name (payee)
-  nameX: 320,
-  nameY: 210,
-  nameFont: 33,
+  // line splitting
+  lineLength1: 33,
+  lineLength2: 33,
 
-  // amount in words (start position)
-  wordsX: 279,
-  wordsY: 299,
-  wordsFont: 32,
-  wordsLineGap: 40,
+  // Name (Payee)
+  nameX: 115,
+  nameY: 80,
+  nameFont: 14,
+  nameTracking: 0,
 
-  // amount numbers (BD box on right)
-  numX: 1135,
-  numY: 387,
-  numFont: 63,
+  // Amount in words
+  wordsX: 90,
+  wordsY: 110,
+  wordsGap: 28,
+  wordsFont: 14,
+  wordsTracking: 0,
 
-  // date digits – first box (day first digit)
-  dateBaseX: 1011,
-  dateY: 97,
-  dateGap: 58,
-  dateFont: 29,
+  // Amount numbers
+  numX: 410,
+  numY: 143,
+  numFont: 18,
+
+  // Date digits (boxes)
+  dateBaseX: 379,
+  dateY: 45,
+  gapDay: 23,
+  gapMon: 21,
+  gapYear: 21,
+  dateFont: 14,
+
+  // global canvas
+  scale: 1.16,
+  rotate: 90, // for printing orientation
 };
 
-const CFG_STORAGE_KEY = "bbk_cheque_cfg_v2";
+const CFG_STORAGE_KEY = "bbk_cheque_cfg_v3";
 
 // Load calibration from localStorage if available
 function loadCfg() {
@@ -193,12 +197,44 @@ function saveCfg(cfg) {
   }
 }
 
+// draw text with extra tracking (like old code)
+function fillTextWithTracking(ctx, text, x, y, trackingPx) {
+  if (!trackingPx) {
+    ctx.fillText(text, x, y);
+    return;
+  }
+  let curX = x;
+  for (const ch of text) {
+    ctx.fillText(ch, curX, y);
+    curX += ctx.measureText(ch).width + trackingPx;
+  }
+}
+
+// split amount words into up to 3 lines using cfg line lengths
+function splitWordsForLines(amountValue, cfg) {
+  const fullWords = formatAmountInWords(amountValue) || "";
+  const lineLen1 = cfg.lineLength1 || 47;
+  const lineLen2 = cfg.lineLength2 || 39;
+
+  const line1 = fullWords.substring(0, lineLen1).trim();
+  const rest = fullWords.substring(lineLen1).trim();
+  let line2 = "";
+  let line3 = "";
+
+  if (rest.length > 0) {
+    line2 = rest.substring(0, lineLen2).trim();
+    line3 = rest.substring(lineLen2).trim();
+  }
+
+  return { line1, line2, line3 };
+}
+
+// ---------- React component ----------
+
 const NewCheque = () => {
   const canvasRef = useRef(null);
   const imgRef = useRef(null);
   const navigate = useNavigate();
-
-  const [imgSize, setImgSize] = useState({ w: 0, h: 0 });
 
   // CLIENT + SYSTEM FIELDS ---------------------------------
   const [company, setCompany] = useState("Intermid Training Center");
@@ -222,70 +258,88 @@ const NewCheque = () => {
   const [saveError, setSaveError] = useState("");
   const [saveDone, setSaveDone] = useState(false);
 
-  // --- helper to get words split exactly like canvas preview ---
-  function splitWordsForLines(amountValue) {
-    const fullWords = formatAmountInWords(amountValue) || "";
-    const lineLen1 = 47;
-    const lineLen2 = 39;
-    const line1 = fullWords.substring(0, lineLen1);
-    const rest = fullWords.substring(lineLen1);
-    const line2 = rest.substring(0, lineLen2);
-    const line3 = rest.substring(lineLen2);
-    return { line1, line2, line3 };
-  }
-
-  // Core drawing logic (for on-screen preview only)
-  const drawCheque = (
-    img,
+  // Core drawing logic – uses SAME logic for preview & print
+  const renderCheque = (
     canvas,
-    payeeValue,
-    hidePayee,
-    dateValue,
-    amountValue,
-    cfgValue
+    img,
+    { payeeValue, hidePayee, dateValue, amountValue },
+    cfgValue,
+    { includeBackground }
   ) => {
     if (!canvas || !img) return;
     const ctx = canvas.getContext("2d");
 
-    canvas.width = img.width;
-    canvas.height = img.height;
+    // use same base size as old code
+    const baseWidth = 650;
+    const baseHeight = img.height;
+
+    canvas.width = baseWidth;
+    canvas.height = baseHeight;
 
     ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, baseWidth, baseHeight);
 
-    // background cheque image
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    // scale (like old cfg_scale)
+    const scale = cfgValue.scale || 1;
+    ctx.scale(scale, scale);
+
+    if (includeBackground) {
+      ctx.drawImage(img, 0, 0);
+    }
 
     ctx.fillStyle = "#000";
 
-    // Payee name (optional hide on printed cheque)
+    // PAYEE
     const finalPayee = hidePayee ? "" : payeeValue;
     if (finalPayee) {
       ctx.font = `${cfgValue.nameFont}px Arial`;
-      ctx.fillText(finalPayee.toUpperCase(), cfgValue.nameX, cfgValue.nameY);
+      fillTextWithTracking(
+        ctx,
+        finalPayee.toUpperCase(),
+        cfgValue.nameX,
+        cfgValue.nameY,
+        cfgValue.nameTracking
+      );
     }
 
-    // Amount in words
+    // AMOUNT IN WORDS
     if (amountValue) {
-      const { line1, line2, line3 } = splitWordsForLines(amountValue);
+      const { line1, line2, line3 } = splitWordsForLines(
+        amountValue,
+        cfgValue
+      );
       ctx.font = `${cfgValue.wordsFont}px Arial`;
 
-      ctx.fillText(line1, cfgValue.wordsX, cfgValue.wordsY);
-      if (line2.trim())
-        ctx.fillText(
+      if (line1) {
+        fillTextWithTracking(
+          ctx,
+          line1,
+          cfgValue.wordsX,
+          cfgValue.wordsY,
+          cfgValue.wordsTracking
+        );
+      }
+      if (line2) {
+        fillTextWithTracking(
+          ctx,
           line2,
           cfgValue.wordsX,
-          cfgValue.wordsY + cfgValue.wordsLineGap
+          cfgValue.wordsY + cfgValue.wordsGap,
+          cfgValue.wordsTracking
         );
-      if (line3.trim())
-        ctx.fillText(
+      }
+      if (line3) {
+        fillTextWithTracking(
+          ctx,
           line3,
           cfgValue.wordsX,
-          cfgValue.wordsY + cfgValue.wordsLineGap * 2
+          cfgValue.wordsY + cfgValue.wordsGap * 2,
+          cfgValue.wordsTracking
         );
+      }
     }
 
-    // Amount numbers (BD)
+    // AMOUNT NUMBERS (BD)
     if (amountValue) {
       ctx.font = `${cfgValue.numFont}px Arial`;
       const parts = amountValue.toString().split(".");
@@ -297,17 +351,32 @@ const NewCheque = () => {
       }
     }
 
-    // Date digits (DDMMYYYY into small boxes)
+    // DATE digits (DDMMYYYY)
     if (dateValue) {
       const [y, m, d] = dateValue.split("-");
       if (y && m && d) {
-        const digits = `${d}${m}${y}`;
         ctx.font = `${cfgValue.dateFont || 20}px Arial`;
-        let x = cfgValue.dateBaseX;
-        for (let i = 0; i < digits.length; i++) {
-          ctx.fillText(digits[i], x, cfgValue.dateY);
-          x += cfgValue.dateGap;
-        }
+        const baseX = cfgValue.dateBaseX;
+        const baseY = cfgValue.dateY;
+        const gapDay = cfgValue.gapDay;
+        const gapMon = cfgValue.gapMon;
+        const gapYear = cfgValue.gapYear;
+
+        // day boxes
+        ctx.fillText(d[0], baseX, baseY);
+        ctx.fillText(d[1], baseX + gapDay, baseY);
+
+        // month boxes
+        const monBase = baseX + gapDay + gapMon;
+        ctx.fillText(m[0], monBase, baseY);
+        ctx.fillText(m[1], monBase + gapMon, baseY);
+
+        // year boxes
+        const yearBase = monBase + gapMon + gapYear;
+        ctx.fillText(y[0], yearBase, baseY);
+        ctx.fillText(y[1], yearBase + gapYear, baseY);
+        ctx.fillText(y[2], yearBase + gapYear * 2, baseY);
+        ctx.fillText(y[3], yearBase + gapYear * 3, baseY);
       }
     }
   };
@@ -315,41 +384,41 @@ const NewCheque = () => {
   // Load cheque background image once
   useEffect(() => {
     const img = new Image();
+    img.crossOrigin = "anonymous";
     img.src = "/bbk_3.jpeg"; // in /public
 
     img.onload = () => {
       imgRef.current = img;
-      setImgSize({
-        w: img.naturalWidth || img.width,
-        h: img.naturalHeight || img.height,
-      });
-      drawCheque(
-        img,
-        canvasRef.current,
-        payee,
-        hideBeneficiary,
-        date,
-        amount,
-        cfg
-      );
+      if (canvasRef.current) {
+        renderCheque(
+          canvasRef.current,
+          img,
+          { payeeValue: payee, hidePayee: hideBeneficiary, dateValue: date, amountValue: amount },
+          cfg,
+          { includeBackground: true }
+        );
+      }
     };
   }, []); // only once
 
-  // Redraw when data / cfg changes
+  // Redraw preview when data / cfg changes
   useEffect(() => {
     if (!imgRef.current || !canvasRef.current) return;
-    drawCheque(
-      imgRef.current,
+    renderCheque(
       canvasRef.current,
-      payee,
-      hideBeneficiary,
-      date,
-      amount,
-      cfg
+      imgRef.current,
+      {
+        payeeValue: payee,
+        hidePayee: hideBeneficiary,
+        dateValue: date,
+        amountValue: amount,
+      },
+      cfg,
+      { includeBackground: true }
     );
   }, [payee, hideBeneficiary, date, amount, cfg]);
 
-  // Download canvas as PNG (screen preview)
+  // Download preview canvas as PNG (screen preview)
   const handleDownload = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -360,43 +429,32 @@ const NewCheque = () => {
     link.click();
   };
 
-  // === NEW PRINT LOGIC: TEXT ONLY, ABSOLUTE POSITIONS, BLACK COLOR ===
-  // Uses cfg X/Y/font values for Name, Amount in words, Amount digits, Date.
+  // Print: **NO BACKGROUND** — draw ONLY text (same coordinates) and rotate
   const handlePrint = () => {
-    const srcCanvas = canvasRef.current;
-    if (!srcCanvas) return;
+    if (!imgRef.current) return;
 
-    const width = srcCanvas.width || 1400;
-    const height = srcCanvas.height || 600;
+    const overlay = document.createElement("canvas");
 
-    // Payee (respect hideBeneficiary)
-    const finalPayee =
-      !hideBeneficiary && payee ? payee.toUpperCase() : "";
+    // render text only (no template)
+    renderCheque(
+      overlay,
+      imgRef.current,
+      {
+        payeeValue: payee,
+        hidePayee: hideBeneficiary,
+        dateValue: date,
+        amountValue: amount,
+      },
+      cfg,
+      { includeBackground: false }
+    );
 
-    // Amount in words -> 3 lines
-    const { line1, line2, line3 } = amount
-      ? splitWordsForLines(amount)
-      : { line1: "", line2: "", line3: "" };
-
-    // Amount numeric (e.g. 200/- or 200/000)
-    let amountNumeric = "";
-    if (amount) {
-      const parts = amount.toString().split(".");
-      const fils = parts[1] ? parts[1].padEnd(3, "0").slice(0, 3) : "";
-      amountNumeric = fils ? `${parts[0]}/${fils}` : `${parts[0]}/-`;
-    }
-
-    // Date digits DDMMYYYY
-    let dateDigits = "";
-    if (date) {
-      const [y, m, d] = date.split("-");
-      if (y && m && d) {
-        dateDigits = `${d}${m}${y}`;
-      }
-    }
+    const dataUrl = overlay.toDataURL("image/png");
 
     const win = window.open("", "_blank");
     if (!win) return;
+
+    const rotateDeg = cfg.rotate || 0;
 
     win.document.write(`
       <html>
@@ -404,116 +462,38 @@ const NewCheque = () => {
           <meta charset="utf-8" />
           <title>Print Cheque Overlay</title>
           <style>
-            @page { size: A4 portrait; margin: 0; }
-            html, body {
-              margin: 0;
-              padding: 0;
-              background: #ffffff;
+            @page { size: A4 landscape; margin: 0; }
+            html,body {
+              margin:0;
+              padding:0;
+              background:#ffffff;
             }
-            :root {
-              /* adjust these three for printer calibration (move whole cheque text) */
-              --print-offset-x: 10mm;
-              --print-offset-y: 12mm;
-              --print-scale: 0.92;
+            :root{
+              --print-scale: 1;
             }
-            .print-sheet {
-              position: relative;
-              width: 210mm;
-              height: 297mm;
-              overflow: hidden;
-              background: #ffffff;
+            .print-sheet{
+              position:relative;
+              width:297mm;
+              height:210mm;
+              overflow:hidden;
             }
-            .cheque-overlay {
-              position: absolute;
-              top: var(--print-offset-y);
-              left: var(--print-offset-x);
-              transform-origin: top left;
-              transform: scale(var(--print-scale));
-              width: ${width}px;
-              height: ${height}px;
-            }
-            .print-field {
-              position: absolute;
-              font-family: Arial, Helvetica, sans-serif;
-              color: #000000;
-              white-space: nowrap;
+            .print-overlay{
+              position:absolute;
+              top:50%;
+              left:50%;
+              transform-origin:center center;
+              transform: translate(-50%, -50%) rotate(${rotateDeg}deg) scale(var(--print-scale));
+              max-width:none;
+              max-height:none;
             }
           </style>
         </head>
         <body>
           <div class="print-sheet">
-            <div class="cheque-overlay">
-              ${
-                finalPayee
-                  ? `<div class="print-field"
-                        style="left:${cfg.nameX}px; top:${cfg.nameY}px; font-size:${cfg.nameFont}px;">
-                        ${finalPayee}
-                      </div>`
-                  : ""
-              }
-
-              ${
-                amount
-                  ? `
-                    <div class="print-field"
-                      style="left:${cfg.wordsX}px; top:${cfg.wordsY}px; font-size:${cfg.wordsFont}px;">
-                      ${line1}
-                    </div>
-                    ${
-                      line2.trim()
-                        ? `<div class="print-field"
-                             style="left:${cfg.wordsX}px; top:${
-                             cfg.wordsY + cfg.wordsLineGap
-                           }px; font-size:${cfg.wordsFont}px;">
-                             ${line2}
-                           </div>`
-                        : ""
-                    }
-                    ${
-                      line3.trim()
-                        ? `<div class="print-field"
-                             style="left:${cfg.wordsX}px; top:${
-                             cfg.wordsY + cfg.wordsLineGap * 2
-                           }px; font-size:${cfg.wordsFont}px;">
-                             ${line3}
-                           </div>`
-                        : ""
-                    }
-                  `
-                  : ""
-              }
-
-              ${
-                amountNumeric
-                  ? `<div class="print-field"
-                        style="left:${cfg.numX}px; top:${cfg.numY}px; font-size:${cfg.numFont}px;">
-                        ${amountNumeric}
-                      </div>`
-                  : ""
-              }
-
-              ${
-                dateDigits
-                  ? dateDigits
-                      .split("")
-                      .map(
-                        (digit, index) =>
-                          `<div class="print-field"
-                               style="left:${
-                                 cfg.dateBaseX + cfg.dateGap * index
-                               }px; top:${cfg.dateY}px; font-size:${
-                            cfg.dateFont || 20
-                          }px;">
-                               ${digit}
-                           </div>`
-                      )
-                      .join("")
-                  : ""
-              }
-            </div>
+            <img class="print-overlay" src="${dataUrl}" />
           </div>
           <script>
-            window.onload = function () {
+            window.onload = function(){
               window.focus();
               window.print();
               window.close();
@@ -522,11 +502,10 @@ const NewCheque = () => {
         </body>
       </html>
     `);
-
     win.document.close();
   };
 
-  // Print WITH cheque template (for PDF / test print)
+  // Print WITH cheque template (for PDF / test print on plain paper)
   const handlePrintWithTemplate = () => {
     const srcCanvas = canvasRef.current;
     if (!srcCanvas) return;
@@ -543,25 +522,25 @@ const NewCheque = () => {
           <title>Print Cheque (with template)</title>
           <style>
             @page { size: A4 portrait; margin: 0; }
-            html, body {
-              margin: 0;
-              padding: 0;
-              background: #ffffff;
+            html,body {
+              margin:0;
+              padding:0;
+              background:#ffffff;
             }
             .print-sheet {
-              position: relative;
-              width: 210mm;
-              height: 297mm;
-              overflow: hidden;
+              position:relative;
+              width:210mm;
+              height:297mm;
+              overflow:hidden;
             }
             .print-img {
-              position: absolute;
-              top: 10mm;
-              left: 10mm;
-              transform-origin: top left;
-              transform: scale(0.92);
-              max-width: none;
-              max-height: none;
+              position:absolute;
+              top:10mm;
+              left:10mm;
+              transform-origin:top left;
+              transform:scale(0.92);
+              max-width:none;
+              max-height:none;
             }
           </style>
         </head>
@@ -570,7 +549,7 @@ const NewCheque = () => {
             <img class="print-img" src="${dataUrl}" />
           </div>
           <script>
-            window.onload = function () {
+            window.onload = function(){
               window.focus();
               window.print();
               window.close();
@@ -589,9 +568,10 @@ const NewCheque = () => {
 
   // Update cfg + persist
   const updateCfg = (field, value) => {
-    const numeric = Number(value) || 0;
+    const numeric = Number(value);
+    const finalValue = Number.isNaN(numeric) ? 0 : numeric;
     setCfg((prev) => {
-      const next = { ...prev, [field]: numeric };
+      const next = { ...prev, [field]: finalValue };
       saveCfg(next);
       return next;
     });
@@ -675,7 +655,7 @@ const NewCheque = () => {
               className="field-input"
               type="text"
               value={payee}
-              onChange={(e) => setPayee(e.target.value)}
+              onChange={(e) => setPayee(e.target.value.toUpperCase())}
               placeholder="Name"
             />
 
@@ -833,21 +813,25 @@ const NewCheque = () => {
 
             {showAdvanced && (
               <div className="advanced-panel">
-                <h3>Line lengths</h3>
+                <h3>Line lengths (amount in words)</h3>
                 <div className="advanced-row">
                   <span>Line 1</span>
                   <input
                     type="number"
-                    defaultValue={47}
-                    disabled
-                    className="advanced-input disabled"
+                    className="advanced-input"
+                    value={cfg.lineLength1}
+                    onChange={(e) =>
+                      updateCfg("lineLength1", e.target.value)
+                    }
                   />
                   <span>Line 2</span>
                   <input
                     type="number"
-                    defaultValue={39}
-                    disabled
-                    className="advanced-input disabled"
+                    className="advanced-input"
+                    value={cfg.lineLength2}
+                    onChange={(e) =>
+                      updateCfg("lineLength2", e.target.value)
+                    }
                   />
                 </div>
 
@@ -874,6 +858,15 @@ const NewCheque = () => {
                     value={cfg.nameFont}
                     onChange={(e) => updateCfg("nameFont", e.target.value)}
                   />
+                  <span>Tracking px</span>
+                  <input
+                    type="number"
+                    className="advanced-input"
+                    value={cfg.nameTracking}
+                    onChange={(e) =>
+                      updateCfg("nameTracking", e.target.value)
+                    }
+                  />
                 </div>
 
                 <h3>Amount (in words)</h3>
@@ -898,10 +891,8 @@ const NewCheque = () => {
                   <input
                     type="number"
                     className="advanced-input"
-                    value={cfg.wordsLineGap}
-                    onChange={(e) =>
-                      updateCfg("wordsLineGap", e.target.value)
-                    }
+                    value={cfg.wordsGap}
+                    onChange={(e) => updateCfg("wordsGap", e.target.value)}
                   />
                   <span>Font px</span>
                   <input
@@ -909,6 +900,15 @@ const NewCheque = () => {
                     className="advanced-input"
                     value={cfg.wordsFont}
                     onChange={(e) => updateCfg("wordsFont", e.target.value)}
+                  />
+                  <span>Tracking px</span>
+                  <input
+                    type="number"
+                    className="advanced-input"
+                    value={cfg.wordsTracking}
+                    onChange={(e) =>
+                      updateCfg("wordsTracking", e.target.value)
+                    }
                   />
                 </div>
 
@@ -953,19 +953,53 @@ const NewCheque = () => {
                     value={cfg.dateY}
                     onChange={(e) => updateCfg("dateY", e.target.value)}
                   />
-                  <span>Gap px</span>
+                </div>
+                <div className="advanced-row">
+                  <span>Gap day</span>
                   <input
                     type="number"
                     className="advanced-input"
-                    value={cfg.dateGap}
-                    onChange={(e) => updateCfg("dateGap", e.target.value)}
+                    value={cfg.gapDay}
+                    onChange={(e) => updateCfg("gapDay", e.target.value)}
+                  />
+                  <span>Gap month</span>
+                  <input
+                    type="number"
+                    className="advanced-input"
+                    value={cfg.gapMon}
+                    onChange={(e) => updateCfg("gapMon", e.target.value)}
+                  />
+                  <span>Gap year</span>
+                  <input
+                    type="number"
+                    className="advanced-input"
+                    value={cfg.gapYear}
+                    onChange={(e) => updateCfg("gapYear", e.target.value)}
                   />
                   <span>Font px</span>
                   <input
                     type="number"
                     className="advanced-input"
-                    value={cfg.dateFont || 20}
+                    value={cfg.dateFont}
                     onChange={(e) => updateCfg("dateFont", e.target.value)}
+                  />
+                </div>
+
+                <h3>Global canvas</h3>
+                <div className="advanced-row">
+                  <span>Scale</span>
+                  <input
+                    type="number"
+                    className="advanced-input"
+                    value={cfg.scale}
+                    onChange={(e) => updateCfg("scale", e.target.value)}
+                  />
+                  <span>Rotate° (print)</span>
+                  <input
+                    type="number"
+                    className="advanced-input"
+                    value={cfg.rotate}
+                    onChange={(e) => updateCfg("rotate", e.target.value)}
                   />
                 </div>
               </div>
