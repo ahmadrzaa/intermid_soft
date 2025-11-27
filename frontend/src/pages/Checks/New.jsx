@@ -198,7 +198,6 @@ const NewCheque = () => {
   const imgRef = useRef(null);
   const navigate = useNavigate();
 
-  // Track image size (if you ever need it for more advanced scaling)
   const [imgSize, setImgSize] = useState({ w: 0, h: 0 });
 
   // CLIENT + SYSTEM FIELDS ---------------------------------
@@ -361,69 +360,44 @@ const NewCheque = () => {
     link.click();
   };
 
-  // Print: **NO BACKGROUND** — render only positioned text via a CANVAS OVERLAY
-  // This is for printing directly on the physical cheque.
+  // === NEW PRINT LOGIC: TEXT ONLY, ABSOLUTE POSITIONS, BLACK COLOR ===
+  // Uses cfg X/Y/font values for Name, Amount in words, Amount digits, Date.
   const handlePrint = () => {
     const srcCanvas = canvasRef.current;
     if (!srcCanvas) return;
 
-    const overlay = document.createElement("canvas");
-    overlay.width = srcCanvas.width;
-    overlay.height = srcCanvas.height;
+    const width = srcCanvas.width || 1400;
+    const height = srcCanvas.height || 600;
 
-    const ctx = overlay.getContext("2d");
-    ctx.clearRect(0, 0, overlay.width, overlay.height);
-    ctx.fillStyle = "#000";
+    // Payee (respect hideBeneficiary)
+    const finalPayee =
+      !hideBeneficiary && payee ? payee.toUpperCase() : "";
 
-    // NAME
-    if (!hideBeneficiary && payee) {
-      ctx.font = `${cfg.nameFont}px Arial`;
-      ctx.fillText(payee.toUpperCase(), cfg.nameX, cfg.nameY);
-    }
+    // Amount in words -> 3 lines
+    const { line1, line2, line3 } = amount
+      ? splitWordsForLines(amount)
+      : { line1: "", line2: "", line3: "" };
 
-    // AMOUNT IN WORDS (3 LINES)
+    // Amount numeric (e.g. 200/- or 200/000)
+    let amountNumeric = "";
     if (amount) {
-      const { line1, line2, line3 } = splitWordsForLines(amount);
-      ctx.font = `${cfg.wordsFont}px Arial`;
-      ctx.fillText(line1, cfg.wordsX, cfg.wordsY);
-      if (line2.trim())
-        ctx.fillText(line2, cfg.wordsX, cfg.wordsY + cfg.wordsLineGap);
-      if (line3.trim())
-        ctx.fillText(line3, cfg.wordsX, cfg.wordsY + cfg.wordsLineGap * 2);
-    }
-
-    // AMOUNT NUMBERS (200/- or 200/000)
-    if (amount) {
-      ctx.font = `${cfg.numFont}px Arial`;
       const parts = amount.toString().split(".");
       const fils = parts[1] ? parts[1].padEnd(3, "0").slice(0, 3) : "";
-      if (fils) ctx.fillText(`${parts[0]}/${fils}`, cfg.numX, cfg.numY);
-      else ctx.fillText(`${parts[0]}/-`, cfg.numX, cfg.numY);
+      amountNumeric = fils ? `${parts[0]}/${fils}` : `${parts[0]}/-`;
     }
 
-    // DATE DIGITS (DDMMYYYY)
+    // Date digits DDMMYYYY
+    let dateDigits = "";
     if (date) {
       const [y, m, d] = date.split("-");
       if (y && m && d) {
-        const digits = `${d}${m}${y}`;
-        ctx.font = `${cfg.dateFont || 20}px Arial`;
-        let x = cfg.dateBaseX;
-        for (let i = 0; i < digits.length; i++) {
-          ctx.fillText(digits[i], x, cfg.dateY);
-          x += cfg.dateGap;
-        }
+        dateDigits = `${d}${m}${y}`;
       }
     }
-
-    const dataUrl = overlay.toDataURL("image/png");
 
     const win = window.open("", "_blank");
     if (!win) return;
 
-    // NOTE:
-    // - White background
-    // - Only overlay image (text), no cheque template
-    // - Use CSS variables for offset + scale so you can fine-tune for your printer
     win.document.write(`
       <html>
         <head>
@@ -437,7 +411,7 @@ const NewCheque = () => {
               background: #ffffff;
             }
             :root {
-              /* Adjust these 3 values when calibrating for the physical printer */
+              /* adjust these three for printer calibration (move whole cheque text) */
               --print-offset-x: 10mm;
               --print-offset-y: 12mm;
               --print-scale: 0.92;
@@ -449,20 +423,94 @@ const NewCheque = () => {
               overflow: hidden;
               background: #ffffff;
             }
-            .print-overlay {
+            .cheque-overlay {
               position: absolute;
               top: var(--print-offset-y);
               left: var(--print-offset-x);
               transform-origin: top left;
               transform: scale(var(--print-scale));
-              max-width: none;
-              max-height: none;
+              width: ${width}px;
+              height: ${height}px;
+            }
+            .print-field {
+              position: absolute;
+              font-family: Arial, Helvetica, sans-serif;
+              color: #000000;
+              white-space: nowrap;
             }
           </style>
         </head>
         <body>
           <div class="print-sheet">
-            <img class="print-overlay" src="${dataUrl}" />
+            <div class="cheque-overlay">
+              ${
+                finalPayee
+                  ? `<div class="print-field"
+                        style="left:${cfg.nameX}px; top:${cfg.nameY}px; font-size:${cfg.nameFont}px;">
+                        ${finalPayee}
+                      </div>`
+                  : ""
+              }
+
+              ${
+                amount
+                  ? `
+                    <div class="print-field"
+                      style="left:${cfg.wordsX}px; top:${cfg.wordsY}px; font-size:${cfg.wordsFont}px;">
+                      ${line1}
+                    </div>
+                    ${
+                      line2.trim()
+                        ? `<div class="print-field"
+                             style="left:${cfg.wordsX}px; top:${
+                             cfg.wordsY + cfg.wordsLineGap
+                           }px; font-size:${cfg.wordsFont}px;">
+                             ${line2}
+                           </div>`
+                        : ""
+                    }
+                    ${
+                      line3.trim()
+                        ? `<div class="print-field"
+                             style="left:${cfg.wordsX}px; top:${
+                             cfg.wordsY + cfg.wordsLineGap * 2
+                           }px; font-size:${cfg.wordsFont}px;">
+                             ${line3}
+                           </div>`
+                        : ""
+                    }
+                  `
+                  : ""
+              }
+
+              ${
+                amountNumeric
+                  ? `<div class="print-field"
+                        style="left:${cfg.numX}px; top:${cfg.numY}px; font-size:${cfg.numFont}px;">
+                        ${amountNumeric}
+                      </div>`
+                  : ""
+              }
+
+              ${
+                dateDigits
+                  ? dateDigits
+                      .split("")
+                      .map(
+                        (digit, index) =>
+                          `<div class="print-field"
+                               style="left:${
+                                 cfg.dateBaseX + cfg.dateGap * index
+                               }px; top:${cfg.dateY}px; font-size:${
+                            cfg.dateFont || 20
+                          }px;">
+                               ${digit}
+                           </div>`
+                      )
+                      .join("")
+                  : ""
+              }
+            </div>
           </div>
           <script>
             window.onload = function () {
@@ -474,6 +522,7 @@ const NewCheque = () => {
         </body>
       </html>
     `);
+
     win.document.close();
   };
 
