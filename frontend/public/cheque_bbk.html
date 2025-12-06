@@ -1,6 +1,3 @@
-Here’s the **full updated `frontend/public/cheque_bbk.html`** with the fixed `API_BASE` logic (works for localhost + Render backend):
-
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -733,11 +730,6 @@ Here’s the **full updated `frontend/public/cheque_bbk.html`** with the fixed `
       // Local dev: Vite frontend on 5173, backend on 3001
       if (origin.includes("localhost:5173")) {
         return "http://localhost:3001/api";
-      }
-
-      // Render production: frontend + backend are different domains
-      if (origin.includes("intermid-frontend.onrender.com")) {
-        return "https://intermid-backend.onrender.com/api";
       }
 
       // Fallback: assume same-origin reverse proxy
@@ -1708,4 +1700,3 @@ Here’s the **full updated `frontend/public/cheque_bbk.html`** with the fixed `
   </script>
 </body>
 </html>
-```

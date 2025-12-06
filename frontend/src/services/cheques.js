@@ -64,7 +64,7 @@ export async function cancelCheque(id) {
 /**
  * Pending cheques for approvals
  *
- * NOW: always fetch all from backend and filter on frontend,
+ * ALWAYS fetch all from backend and filter on frontend,
  * so behaviour is identical local + Render.
  */
 export async function getPendingCheques() {
