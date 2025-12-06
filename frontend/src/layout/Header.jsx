@@ -1,12 +1,14 @@
 // frontend/src/layout/Header.jsx
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../AuthContext";
 import "./header.css";
 
 export default function Header({ onToggleSidebar }) {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
+  const [term, setTerm] = useState("");
 
   const name = user?.name || "User";
   const firstName = name.split(" ")[0];
@@ -20,6 +22,8 @@ export default function Header({ onToggleSidebar }) {
       .slice(0, 2)
       .toUpperCase() || "U";
 
+  const companyName = user?.companyName || "Cheque Software";
+
   const handleLogout = () => {
     setOpen(false);
     if (typeof logout === "function") {
@@ -27,9 +31,16 @@ export default function Header({ onToggleSidebar }) {
     }
   };
 
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    const q = term.trim();
+    if (!q) return;
+    navigate(`/history?q=${encodeURIComponent(q)}`);
+  };
+
   return (
     <header className="app-header">
-      {/* LEFT: burger + logo (logo only, no text) */}
+      {/* LEFT: burger + brand text */}
       <div className="header-left">
         <button
           type="button"
@@ -45,29 +56,27 @@ export default function Header({ onToggleSidebar }) {
         <Link
           to="/dashboard"
           className="header-logo-link"
-          aria-label="INTERMID"
+          aria-label={companyName}
         >
-          <img
-            src="/intermid-01.svg"
-            alt="INTERMID logo"
-            className="header-logo-img"
-          />
+          <span className="header-logo-text">{companyName}</span>
         </Link>
       </div>
 
-      {/* CENTER: rectangular search bar like example */}
+      {/* CENTER: search */}
       <div className="header-center">
-        <div className="header-search">
+        <form className="header-search" onSubmit={handleSearchSubmit}>
           <span className="header-search-icon">🔍</span>
           <input
             type="text"
             className="header-search-input"
             placeholder="Search cheques, beneficiaries…"
+            value={term}
+            onChange={(e) => setTerm(e.target.value)}
           />
-        </div>
+        </form>
       </div>
 
-      {/* RIGHT: currency / language + user profile */}
+      {/* RIGHT: user section stays same */}
       <div className="header-right">
         <div className="header-select-wrap">
           <select className="header-select">

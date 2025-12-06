@@ -2,10 +2,7 @@
 
 @import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700&family=Space+Grotesk:wght@400;500;600&display=swap");
 
-/* THEME VARIABLES
-   Light = warm cheque desk
-   Dark  = cinematic dark similar to login page
-*/
+/* THEME VARIABLES */
 
 :root {
   --app-shell-bg: radial-gradient(
@@ -17,14 +14,12 @@
     radial-gradient(circle at 10% 0%, #f3e3cf 0, #d8c1a8 32%, transparent 60%),
     radial-gradient(circle at 90% 100%, #b99a7e 0, #8b725a 40%, #4c3f35 80%),
     linear-gradient(135deg, #cbb49b 0%, #a38c75 40%, #53433a 100%);
-  --app-topbar-bg: linear-gradient(
-    to bottom,
-    rgba(15, 23, 42, 0.98),
-    rgba(15, 23, 42, 0.9)
-  );
+  /* topbar solid dark */
+  --app-topbar-bg: linear-gradient(to bottom, #020617, #020617);
 }
 
-/* Dark theme overrides – triggered by <html data-theme="dark"> */
+/* Dark theme overrides */
+
 [data-theme="dark"] {
   --app-shell-bg: radial-gradient(
       circle at 12% 0%,
@@ -40,17 +35,16 @@
   --app-topbar-bg: linear-gradient(to bottom, #020617, #020617);
 }
 
-/* ROOT SHELL – uses theme background */
+/* ROOT SHELL */
+
 .app-shell {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-
   background: var(--app-shell-bg);
   background-attachment: fixed;
   background-size: 140% 140%;
   animation: appBgDrift 26s ease-in-out infinite alternate;
-
   font-family: "Space Grotesk", system-ui, -apple-system, BlinkMacSystemFont,
     "SF Pro Text", "Segoe UI", sans-serif;
 }
@@ -96,6 +90,51 @@
   display: block;
 }
 
+/* updated brand button */
+
+.app-brand-text {
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: #f9fafb;
+}
+
+.app-brand-title {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: #f9fafb;
+}
+
+/* logo in top bar */
+
+.app-brand-logo-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.app-brand-logo-img {
+  height: 26px;
+  width: auto;
+  display: block;
+  filter: drop-shadow(0 0 6px rgba(0, 0, 0, 0.6));
+}
+
+.app-search-icon-btn {
+  border: none;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 10px;
+  cursor: pointer;
+}
+
 /* SEARCH -------------------------------------------------- */
 
 .app-topbar-center {
@@ -103,19 +142,16 @@
   justify-content: center;
 }
 
-/* small rectangular search bar with icon on the RIGHT */
 .app-search {
   display: flex;
   align-items: center;
   max-width: 420px;
   width: 100%;
   height: 34px;
-
-  border-radius: 6px; /* rectangle, not pill */
+  border-radius: 6px;
   background: #f9fafb;
   border: 1px solid #cbd5e1;
   padding: 0 10px;
-
   box-shadow: 0 6px 16px rgba(15, 23, 42, 0.25);
   transition:
     border-color 0.18s ease,
@@ -136,7 +172,6 @@
   color: #9ca3af;
 }
 
-/* icon on the RIGHT side */
 .app-search-icon {
   margin-left: 8px;
   width: 16px;
@@ -177,27 +212,75 @@
   box-shadow: 0 12px 26px rgba(15, 23, 42, 0.9);
 }
 
-.app-user-button-icon {
-  width: 16px;
-  height: 16px;
-  color: #e5e7eb;
-}
-
 .app-user-button:hover {
   border-color: #22c55e;
+}
+
+/* avatar in top bar */
+
+.app-user-button-avatar {
+  padding: 0;
+  overflow: hidden;
+}
+
+.app-user-avatar-img,
+.app-user-avatar-initials {
+  width: 100%;
+  height: 100%;
+  border-radius: 999px;
+}
+
+.app-user-avatar-img {
+  object-fit: cover;
+}
+
+.app-user-avatar-initials {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: #e5e7eb;
+  text-transform: uppercase;
 }
 
 .app-user-menu {
   position: absolute;
   right: 0;
   top: 120%;
-  min-width: 170px;
+  min-width: 200px;
   background: rgba(15, 23, 42, 0.98);
   border-radius: 16px;
   padding: 10px 12px;
   border: 1px solid rgba(148, 163, 184, 0.6);
   box-shadow: 0 18px 36px rgba(15, 23, 42, 0.95);
   z-index: 50;
+}
+
+.app-user-menu-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.app-user-menu-avatar-small {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: #020617;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: #e5e7eb;
+}
+
+.app-user-menu-avatar-small img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .app-user-menu-name {
@@ -209,11 +292,31 @@
 .app-user-menu-role {
   font-size: 11px;
   color: #9ca3af;
-  margin-bottom: 8px;
+  margin-bottom: 2px;
+}
+
+.app-user-menu-edit {
+  margin-top: 4px;
+  width: 100%;
+  border-radius: 999px;
+  border: 1px solid #4b5563;
+  background: transparent;
+  color: #e5e7eb;
+  font-size: 11px;
+  padding: 6px 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.app-user-menu-edit:hover {
+  border-color: #22c55e;
 }
 
 .app-user-menu-logout {
-  margin-top: 4px;
+  margin-top: 6px;
   width: 100%;
   border-radius: 999px;
   border: 1px solid #ef4444;
@@ -373,7 +476,7 @@
   }
 
   .app-topbar-center {
-    display: none; /* on mobile hide search to keep bar clean */
+    display: none;
   }
 }
 

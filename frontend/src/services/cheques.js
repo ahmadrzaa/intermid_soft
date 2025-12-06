@@ -5,9 +5,10 @@ import api from "./api";
 
 /**
  * List cheques (optionally with filters)
+ *   e.g. getCheques({ status: "pending" })
  */
 export async function getCheques(params = {}) {
-  // backend routes are under /api/cheques  (your log shows Cheques routes loaded)
+  // backend routes are under /api/cheques
   const res = await api.get("/api/cheques", { params });
   return res.data;
 }
@@ -30,7 +31,6 @@ export async function createCheque(payload) {
 
 /**
  * Update cheque
- * (only use after adding backend PUT /api/cheques/:id)
  */
 export async function updateCheque(id, payload) {
   const res = await api.put(`/api/cheques/${id}`, payload);
@@ -39,7 +39,6 @@ export async function updateCheque(id, payload) {
 
 /**
  * Delete cheque
- * (only use after adding backend DELETE /api/cheques/:id)
  */
 export async function deleteCheque(id) {
   const res = await api.delete(`/api/cheques/${id}`);
@@ -64,15 +63,34 @@ export async function cancelCheque(id) {
 
 /**
  * Pending cheques for approvals
- * (status Draft or Pending)
+ *
+ * Uses backend filter (?status=pending) which returns:
+ *   - status "Pending"
+ *   - status "Draft"
+ *
+ * And still does a safe client-side filter as a fallback.
  */
 export async function getPendingCheques() {
-  const data = await getCheques();
+  let data;
+
+  try {
+    // ask backend specifically for "pending" (Pending + Draft)
+    data = await getCheques({ status: "pending" });
+  } catch (err) {
+    // fallback – no server filter
+    data = await getCheques();
+  }
+
   const list = Array.isArray(data) ? data : data?.cheques || [];
 
   return list.filter((ch) => {
     const st = String(ch.status || "").toLowerCase();
-    return st === "draft" || st === "pending";
+    return (
+      st === "draft" ||
+      st === "pending" ||
+      st === "pendingapproval" ||
+      st === "pending_approval"
+    );
   });
 }
 
@@ -125,11 +143,14 @@ export async function getDashboardSummary() {
 
     const st = String(ch.status || "").toLowerCase();
 
-    if (st === "draft") {
-      stats.status.draft += 1;
-      // treat Draft as "pending approval" in dashboard
-      stats.status.pendingApproval += 1;
-    } else if (st === "pending") {
+    // PENDING APPROVAL = Pending + Draft + PendingApproval variants
+    if (
+      st === "draft" ||
+      st === "pending" ||
+      st === "pendingapproval" ||
+      st === "pending_approval"
+    ) {
+      stats.status.draft += 1; // we reuse draft counter for "to be approved"
       stats.status.pendingApproval += 1;
     } else if (st === "approved") {
       stats.status.approved += 1;
@@ -141,7 +162,9 @@ export async function getDashboardSummary() {
       stats.status.stopped += 1;
     }
 
-    const d = ch.printedAt || ch.approvedAt || ch.updatedAt || ch.createdAt;
+    // last activity date (printed > approved > updated > created)
+    const d =
+      ch.printedAt || ch.approvedAt || ch.updatedAt || ch.createdAt;
     const dt = d ? new Date(d) : null;
 
     if (dt && !isNaN(dt)) {

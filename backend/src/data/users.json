@@ -1,1 +1,12 @@
-[]
+[
+  {
+    "id": "mioknfyk",
+    "name": "Admin User",
+    "email": "digital@intermid.net",
+    "mobile": "",
+    "company": "",
+    "role": "Admin",
+    "passwordHash": "$2b$10$vYamiiMTeLP9nUOWIr4QJOAvuxiocGYXgD3HKyPrhejoJXgqtnQ6e",
+    "createdAt": "2025-12-02T12:46:06.476Z"
+  }
+]

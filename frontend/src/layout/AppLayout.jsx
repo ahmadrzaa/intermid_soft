@@ -1,10 +1,9 @@
 // src/layout/AppLayout.jsx
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../AuthContext";
 import "./app-layout.css";
 
-// Feather-style icons
 import {
   FiHome,
   FiFileText,
@@ -13,7 +12,6 @@ import {
   FiUsers,
   FiSettings,
   FiSearch,
-  FiUser,
 } from "react-icons/fi";
 
 import FloatingTools from "../components/FloatingTools";
@@ -60,18 +58,92 @@ const SETTINGS_ITEMS = [
   },
 ];
 
+// same key used in Settings page
+const PROFILE_STORAGE_KEY = "chequeApp_profile_v1";
+
 export default function AppLayout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  // profile + company data loaded from localStorage
+  const [profile, setProfile] = useState({
+    name: user?.name || "",
+    companyName: user?.companyName || "",
+    profileImageDataUrl: "",
+    companyLogoDataUrl: "",
+  });
+
+  const role = user?.role || "Admin";
+  const displayName = profile.name || user?.name || "User";
+
+  const brandName =
+    profile.companyName || user?.companyName || "Cheque Software";
+
+  const initials =
+    (displayName || "U")
+      .split(" ")
+      .map((p) => p[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase();
+
+  // read from localStorage
+  function loadProfileFromStorage() {
+    try {
+      const raw = localStorage.getItem(PROFILE_STORAGE_KEY);
+      if (!raw) {
+        setProfile((prev) => ({
+          ...prev,
+          name: user?.name || prev.name,
+          companyName: user?.companyName || prev.companyName,
+        }));
+        return;
+      }
+      const stored = JSON.parse(raw);
+      setProfile({
+        name: stored.name || user?.name || "",
+        companyName: stored.companyName || user?.companyName || "",
+        profileImageDataUrl: stored.profileImageDataUrl || "",
+        companyLogoDataUrl: stored.companyLogoDataUrl || "",
+      });
+    } catch {
+      setProfile((prev) => ({
+        ...prev,
+        name: user?.name || prev.name,
+        companyName: user?.companyName || prev.companyName,
+      }));
+    }
+  }
+
+  // initial load + whenever user object changes
+  useEffect(() => {
+    loadProfileFromStorage();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.name, user?.companyName]);
+
+  // listen for custom event fired from Settings after Save
+  useEffect(() => {
+    const handler = () => loadProfileFromStorage();
+    window.addEventListener("chequeProfileUpdated", handler);
+    return () => window.removeEventListener("chequeProfileUpdated", handler);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function handleLogout() {
     await logout();
     setUserMenuOpen(false);
-    // 🔁 After logout go to HOME page (brand landing), not /login
     navigate("/", { replace: true });
+  }
+
+  function handleSearchSubmit(e) {
+    e.preventDefault();
+    const q = searchTerm.trim();
+    if (!q) return;
+    navigate(`/app/history?q=${encodeURIComponent(q)}`);
   }
 
   return (
@@ -88,47 +160,98 @@ export default function AppLayout() {
             ☰
           </button>
 
-          <a href="/app/dashboard" className="app-brand">
-            <img
-              src="/intermid-01.svg"
-              alt="INTERMID"
-              className="app-brand-logo"
-            />
-          </a>
+          {/* Brand: company logo + name */}
+          <button
+            type="button"
+            className="app-brand app-brand-text"
+            onClick={() => navigate("/app/dashboard")}
+          >
+            {profile.companyLogoDataUrl && (
+              <span className="app-brand-logo-wrap">
+                <img
+                  src={profile.companyLogoDataUrl}
+                  alt={brandName}
+                  className="app-brand-logo-img"
+                />
+              </span>
+            )}
+            <span className="app-brand-title">{brandName}</span>
+          </button>
         </div>
 
-        {/* SEARCH – small bar with icon on the RIGHT */}
+        {/* SEARCH – global search */}
         <div className="app-topbar-center">
-          <div className="app-search">
+          <form className="app-search" onSubmit={handleSearchSubmit}>
             <input
               type="text"
               className="app-search-input"
-              placeholder="Search cheques, beneficiaries..."
+              placeholder="Search cheques, beneficiaries…"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
             />
-            <FiSearch className="app-search-icon" />
-          </div>
+            <button
+              type="submit"
+              className="app-search-icon-btn"
+              aria-label="Search"
+            >
+              <FiSearch className="app-search-icon" />
+            </button>
+          </form>
         </div>
 
-        {/* USER ICON + DROPDOWN */}
+        {/* USER ICON + MENU */}
         <div className="app-topbar-right">
           <div className="app-user">
             <button
               type="button"
-              className="app-user-button"
+              className="app-user-button app-user-button-avatar"
               onClick={() => setUserMenuOpen((v) => !v)}
               aria-label="Account menu"
             >
-              <FiUser className="app-user-button-icon" />
+              {profile.profileImageDataUrl ? (
+                <img
+                  src={profile.profileImageDataUrl}
+                  alt={displayName}
+                  className="app-user-avatar-img"
+                />
+              ) : (
+                <span className="app-user-avatar-initials">
+                  {initials}
+                </span>
+              )}
             </button>
 
             {userMenuOpen && (
               <div className="app-user-menu">
-                <div className="app-user-menu-name">
-                  {user?.name || "User"}
+                <div className="app-user-menu-header">
+                  <div className="app-user-menu-avatar-small">
+                    {profile.profileImageDataUrl ? (
+                      <img
+                        src={profile.profileImageDataUrl}
+                        alt={displayName}
+                      />
+                    ) : (
+                      <span>{initials}</span>
+                    )}
+                  </div>
+                  <div>
+                    <div className="app-user-menu-name">{displayName}</div>
+                    <div className="app-user-menu-role">{role}</div>
+                  </div>
                 </div>
-                <div className="app-user-menu-role">
-                  {user?.role || "Admin"}
-                </div>
+
+                <button
+                  type="button"
+                  className="app-user-menu-edit"
+                  onClick={() => {
+                    setUserMenuOpen(false);
+                    navigate("/app/settings");
+                  }}
+                >
+                  <span>✏</span>
+                  <span>Edit profile &amp; company logo</span>
+                </button>
+
                 <button
                   type="button"
                   className="app-user-menu-logout"
@@ -144,7 +267,6 @@ export default function AppLayout() {
 
       {/* BODY: SIDEBAR + MAIN CONTENT */}
       <div className="app-body">
-        {/* BACKDROP FOR MOBILE */}
         {sidebarOpen && (
           <div
             className="app-sidebar-backdrop"

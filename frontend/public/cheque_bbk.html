@@ -1,946 +1,1687 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Write Cheque BBK</title>
-
-  <!-- Global home styles (for header + footer) -->
- 
+  <meta charset="UTF-8" />
+  <title>Write Cheque</title>
 
   <!-- Font + Icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
+  />
 
   <!-- Orbitron + Josefin Sans (for heading / text style) -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800;900&family=Josefin+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800;900&family=Josefin+Sans:wght@300;400;500&display=swap"
+    rel="stylesheet"
+  />
 
-<style>
-  :root {
-    --nav-h: 64px;
-    --bg: #020608;
-    --text: #111111;
-    --muted: #cfd3db;
-    --white: #ffffff;
-    --brand-gold: #CDA06A;
-    --font-ui: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    --font-display: "Orbitron", system-ui, sans-serif;
-    --font-alt: "Josefin Sans", var(--font-ui);
-  }
+  <style>
+    :root {
+      --nav-h: 64px;
+      --bg: #020608;
+      --text: #111111;
+      --muted: #cfd3db;
+      --white: #ffffff;
+      --brand-gold: #cda06a;
+      --font-ui: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
+        Arial, sans-serif;
+      --font-display: "Orbitron", system-ui, sans-serif;
+      --font-alt: "Josefin Sans", var(--font-ui);
+    }
 
-  html, body {
-    margin: 0;
-    padding: 0;
-    height: 100%;
-    font-family: var(--font-ui);
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: var(--font-ui);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
 
-  /* ===== TESLA-STYLE MIXED BACKGROUND ===== */
-  body {
-    position: relative;
-    color: var(--text); /* DARK text everywhere */
-    overflow-x: hidden;
-  }
+    body {
+      position: relative;
+      color: var(--text);
+      overflow-x: hidden;
+    }
 
-  body::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    z-index: -1;
-    background-image:
-      linear-gradient(
-        to bottom,
-        #78b8ff 0%,
-        #dbe6f4 32%,
-        #f3ede1 55%,
-        #c9ae8f 75%,
-        #4f4e54 100%
-      );
-    background-size: cover;
-    background-position: center;
-    filter: saturate(1.05);
-    transform: scale(1.05);
-    animation: bgZoom 26s ease-in-out infinite alternate;
-  }
+    input#ch_name {
+      text-transform: uppercase;
+    }
 
-  @keyframes bgZoom {
-    from { transform: scale(1.03); }
-    to   { transform: scale(1.09); }
-  }
+    .printModal {
+      font-family: sans-serif;
+      display: flex;
+      text-align: center;
+      font-weight: 300;
+      font-size: 30px;
+      left: 0;
+      top: 0;
+      position: absolute;
+      color: #045fb4;
+      width: 100%;
+      height: 100%;
+      background-color: hsla(0, 0%, 100%, 0.9);
+    }
+    .printClose {
+      position: absolute;
+      right: 10px;
+      top: 10px;
+    }
+    .printClose:before {
+      content: "\00D7";
+      font-family: Helvetica Neue, sans-serif;
+      font-weight: 100;
+      line-height: 1px;
+      padding-top: 0.5em;
+      display: block;
+      font-size: 2em;
+      text-indent: 1px;
+      overflow: hidden;
+      height: 1.25em;
+      width: 1.25em;
+      text-align: center;
+      cursor: pointer;
+    }
+    .printSpinner {
+      margin-top: 3px;
+      margin-left: -40px;
+      position: absolute;
+      display: inline-block;
+      width: 25px;
+      height: 25px;
+      border: 2px solid #045fb4;
+      border-radius: 50%;
+      animation: spin 0.75s linear infinite;
+    }
+    .printSpinner:after,
+    .printSpinner:before {
+      left: -2px;
+      top: -2px;
+      display: none;
+      position: absolute;
+      content: "";
+      width: inherit;
+      height: inherit;
+      border: inherit;
+      border-radius: inherit;
+    }
+    .printSpinner,
+    .printSpinner:after,
+    .printSpinner:before {
+      display: inline-block;
+      border-color: #045fb4 transparent transparent;
+      animation-duration: 1.2s;
+    }
+    .printSpinner:before {
+      transform: rotate(120deg);
+    }
+    .printSpinner:after {
+      transform: rotate(240deg);
+    }
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+      to {
+        transform: rotate(1turn);
+      }
+    }
 
-  input#ch_name {
-    text-transform: uppercase;
-  }
+    canvas#cheque_img {
+      position: absolute;
+      left: -11px;
+      top: 10px;
+      transform: scale(0.99);
+    }
+    canvas#cheque_img_back {
+      border: 1px solid #ddd;
+      box-shadow: 0px 0px 6px 0px #858080;
+      min-height: 287px;
+      background: #ffffff94;
+      border: 11px solid #ffff;
+      border-right: 0;
+    }
 
-  .printModal{font-family:sans-serif;display:flex;text-align:center;font-weight:300;font-size:30px;left:0;top:0;position:absolute;color:#045fb4;width:100%;height:100%;background-color:hsla(0,0%,100%,.9)}
-  .printClose{position:absolute;right:10px;top:10px}
-  .printClose:before{content:"\00D7";font-family:Helvetica Neue,sans-serif;font-weight:100;line-height:1px;padding-top:.5em;display:block;font-size:2em;text-indent:1px;overflow:hidden;height:1.25em;width:1.25em;text-align:center;cursor:pointer}
-  .printSpinner{margin-top:3px;margin-left:-40px;position:absolute;display:inline-block;width:25px;height:25px;border:2px solid #045fb4;border-radius:50%;animation:spin .75s linear infinite}
-  .printSpinner:after,.printSpinner:before{left:-2px;top:-2px;display:none;position:absolute;content:"";width:inherit;height:inherit;border:inherit;border-radius:inherit}
-  .printSpinner,.printSpinner:after,.printSpinner:before{display:inline-block;border-color:#045fb4 transparent transparent;animation-duration:1.2s}
-  .printSpinner:before{transform:rotate(120deg)}
-  .printSpinner:after{transform:rotate(240deg)}
-  @keyframes spin{0%{transform:rotate(0deg)}to{transform:rotate(1turn)}}
-
-  canvas#cheque_img {
-    position: absolute;
-    left: -11px;
-    top: 10px;
-    transform: scale(.99);
-  }
-  canvas#cheque_img_back {
-    border: 1px solid #ddd;
-    box-shadow: 0px 0px 6px 0px #858080;
-    min-height: 287px;
-    background: #ffffff94;
-    border: 11px solid #ffff;
-    border-right: 0;
-  }
-
-  /* ===== MAIN LAYOUT ===== */
-  .print_cheque {
-    display: flex;
-    flex-wrap: wrap;
-    min-height: 100vh;
-    width: 100%;
-    align-items: center;
-    justify-content: center;
-    gap: 60px;
-    padding: 80px 40px 70px;
-    box-sizing: border-box;
-  }
-
-  .left_box {
-    display: flex;
-    flex-direction: column;
-    margin-right: 0;
-    max-width: 560px;
-    width: 100%;
-  }
-
-  .left_box h3 {
-    margin-top: 0;
-    margin-bottom: 14px;
-    font-family: var(--font-display);
-    font-weight: 900;
-    text-transform: uppercase;
-    letter-spacing: 0.18em;
-    line-height: 1.15;
-    font-size: clamp(1.4rem, 2.4vw, 2rem);
-    color: #111;
-    text-shadow: 0 12px 30px rgba(0,0,0,.45);
-  }
-
-  /* ===== FORM FIELDS ===== */
-  .left_box input,
-  .left_box select {
-    display: block;
-    height: 40px;
-    width: 100%;
-    margin-bottom: 10px;
-    padding: 0 12px;
-    color: #111;
-    background: rgba(255,255,255,0.97);
-    border-radius: 0;
-    border: 1px solid rgba(0,0,0,0.35);
-    box-sizing: border-box;
-    font-size: 14px;
-    line-height: 1.2;
-    font-family: var(--font-alt);
-    outline: none;
-    transition:
-      background-color 0.15s ease,
-      border-color 0.15s ease,
-      box-shadow 0.15s ease;
-  }
-
-  .left_box input::placeholder {
-    color: #666;
-    font-family: var(--font-alt);
-  }
-
-  .left_box input:focus,
-  .left_box select:focus {
-    background: #ffffff;
-    border-color: var(--brand-gold);
-    box-shadow:
-      0 0 0 1px rgba(205,160,106,0.55),
-      0 14px 32px rgba(0,0,0,0.30);
-    transform: translateY(-1px);
-  }
-
-  select#company {
-    margin-bottom: 10px;
-    height: 40px;
-    padding: 0 12px;
-  }
-
-  .btns {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: flex-start;
-    gap: 10px;
-    margin: 8px 0 12px;
-  }
-
-  /* ===== BUTTONS ===== */
-  button#populate,
-  #download,
-  #print,
-  #share,
-  .btns button {
-    position: relative;
-    overflow: hidden;
-    height: 40px;
-    width: 150px;
-    text-transform: uppercase;
-    font-size: 11px;
-    letter-spacing: .16em;
-    font-family: var(--font-alt);
-    font-weight: 600;
-    background: rgba(255,255,255,0.9);
-    border-radius: 0;     /* <<< FLAT RECTANGLE */
-    border: 1px solid rgba(0,0,0,0.55);
-    line-height: 40px;
-    color: #111;
-    padding: 0 18px;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 14px 34px rgba(0,0,0,0.45);
-    transition:
-      transform 0.18s ease,
-      box-shadow 0.18s ease,
-      background-color 0.18s ease,
-      color 0.18s ease,
-      border-color 0.18s ease;
-  }
-
-  button i {
-    margin-left: 5px;
-    font-size: 13px;
-  }
-
-  button#populate::before,
-  #download::before,
-  #print::before,
-  #share::before,
-  .btns button::before {
-    content: "";
-    position: absolute;
-    inset: 3px;
-    border-radius: inherit;
-    border: 1px solid rgba(0,0,0,0.2);
-    opacity: 0;
-    transform: scale(1.1);
-    transition:
-      opacity 0.18s ease,
-      transform 0.18s ease;
-    pointer-events: none;
-  }
-
-  button#populate:hover,
-  #download:hover,
-  #print:hover,
-  #share:hover,
-  .btns button:hover {
-    background: #111;
-    color: #fdfdfd;
-    border-color: #111;
-    transform: translateY(-1px);
-    box-shadow: 0 18px 40px rgba(0,0,0,0.65);
-  }
-
-  button#populate:hover::before,
-  #download:hover::before,
-  #print:hover::before,
-  #share:hover::before,
-  .btns button:hover::before {
-    opacity: 1;
-    transform: scale(1);
-  }
-
-  .right_box {
-    position: relative;
-    flex-shrink: 0;
-  }
-
-  input#checkbox {
-    max-width: 15px;
-    height: 15px;
-    display: inline-block;
-    vertical-align: -webkit-baseline-middle;
-    line-height: 15px;
-    margin-left: 4px;
-  }
-
-  label {
-    font-family: var(--font-alt);
-    font-size: 12px;
-    color: #222;
-  }
-
-  /* ===== Advanced layout (simple, no big card) ===== */
-  .settings {
-    display: none;
-    margin-top: 10px;
-    padding: 14px 0 16px;
-    background: transparent;
-    border-radius: 0;
-    font-size: 12px;
-    color: #111;
-    box-shadow: none;
-  }
-
-  .adv-group {
-    margin-bottom: 14px;
-  }
-
-  .adv-title {
-    font-weight: 600;
-    margin-bottom: 4px;
-    text-transform: uppercase;
-    letter-spacing: .12em;
-    font-size: 11px;
-    font-family: var(--font-alt);
-    color: #444;
-  }
-
-  .adv-label-row,
-  .adv-input-row {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 4px;
-  }
-
-  .adv-label-row span {
-    flex: 0 0 auto;
-    font-size: 11px;
-    opacity: 0.85;
-    min-width: 60px;
-  }
-
-  .adv-input-row input {
-    flex: 0 0 auto;
-    width: 70px;                  /* small stair-type boxes */
-    height: 32px;
-    padding: 4px 6px;
-    box-sizing: border-box;
-    border: 1px solid rgba(0,0,0,0.3);
-    border-radius: 4px;
-    font-size: 12px;
-    font-family: var(--font-ui);
-  }
-
-  .adv-input-row input[type="number"] {
-    text-align: center;
-  }
-
-  /* ===== Responsive ===== */
-  @media screen and (max-width:991px){
+    /* ===== MAIN LAYOUT ===== */
     .print_cheque {
+      display: flex;
+      flex-wrap: wrap;
+      min-height: 100vh;
+      width: 100%;
+      align-items: center;
+      justify-content: center;
+      gap: 60px;
+      padding: 80px 40px 70px;
+      box-sizing: border-box;
+    }
+
+    .left_box {
+      display: flex;
       flex-direction: column;
+      margin-right: 0;
+      max-width: 560px;
+      width: 100%;
+    }
+
+    .left_box h3 {
+      margin-top: 0;
+      margin-bottom: 14px;
+      font-family: var(--font-display);
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      line-height: 1.15;
+      font-size: clamp(1.4rem, 2.4vw, 2rem);
+      color: #111;
+      text-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+    }
+
+    /* ===== FORM FIELDS ===== */
+    .left_box input,
+    .left_box select {
+      display: block;
+      height: 40px;
+      width: 100%;
+      margin-bottom: 10px;
+      padding: 0 12px;
+      color: #111;
+      background: rgba(255, 255, 255, 0.97);
+      border-radius: 0;
+      border: 1px solid rgba(0, 0, 0, 0.35);
+      box-sizing: border-box;
+      font-size: 14px;
+      line-height: 1.2;
+      font-family: var(--font-alt);
+      outline: none;
+      transition: background-color 0.15s ease, border-color 0.15s ease,
+        box-shadow 0.15s ease;
+    }
+
+    .left_box input::placeholder {
+      color: #666;
+      font-family: var(--font-alt);
+    }
+
+    .left_box input:focus,
+    .left_box select:focus {
+      background: #ffffff;
+      border-color: var(--brand-gold);
+      box-shadow: 0 0 0 1px rgba(205, 160, 106, 0.55),
+        0 14px 32px rgba(0, 0, 0, 0.3);
+      transform: translateY(-1px);
+    }
+
+    select#company {
+      margin-bottom: 10px;
+      height: 40px;
+      padding: 0 12px;
+    }
+
+    .btns {
+      display: flex;
+      flex-wrap: wrap;
       align-items: center;
       justify-content: flex-start;
-      padding: 70px 18px 40px;
-      gap: 30px;
+      gap: 10px;
+      margin: 8px 0 12px;
     }
-    .right_box canvas { zoom: 60%; }
-    .left_box {
-      width: 100%;
-      max-width: 100%;
-      margin-right: 0;
+
+    /* Bank row label */
+    .bank-row {
+      margin-bottom: 10px;
     }
-    .print_cheque { min-height: 100vh; }
-  }
 
-  @media screen and (max-width:767px){
-    .right_box canvas { zoom: 45%; }
-
-    .left_box h3 { font-size: 20px; letter-spacing: .18em; }
-    .left_box { width: 100%; }
-
-    /* buttons: 3 small in one row */
-    .btns {
-      width: 100%;
-      justify-content: center;
-      gap: 6px;
-      flex-wrap: nowrap;
+    .bank-row label {
+      display: block;
+      margin-bottom: 4px;
+      font-family: var(--font-alt);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #444;
     }
+
+    /* ===== BUTTONS ===== */
+    button#populate,
+    #download,
+    #print,
+    #share,
+    #save_cheque,
     .btns button {
-      flex: 1 1 0;
-      width: auto;
-      min-width: 0;
-      font-size: 9px;
-      letter-spacing: .12em;
-      padding: 0 6px;
-      border-radius: 0;   /* keep rectangle on mobile too */
-    }
-    .btns button i {
-      font-size: 14px;
-      margin-left: 4px;
-      vertical-align: middle;
+      position: relative;
+      overflow: hidden;
+      height: 40px;
+      width: 150px;
+      text-transform: uppercase;
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      font-family: var(--font-alt);
+      font-weight: 600;
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 0;
+      border: 1px solid rgba(0, 0, 0, 0.55);
+      line-height: 40px;
+      color: #111;
+      padding: 0 18px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 14px 34px rgba(0, 0, 0, 0.45);
+      transition: transform 0.18s ease, box-shadow 0.18s ease,
+        background-color 0.18s ease, color 0.18s ease,
+        border-color 0.18s ease;
     }
 
-    /* advanced rows can wrap if needed */
+    button i {
+      margin-left: 5px;
+      font-size: 13px;
+    }
+
+    button#populate::before,
+    #download::before,
+    #print::before,
+    #share::before,
+    #save_cheque::before,
+    .btns button::before {
+      content: "";
+      position: absolute;
+      inset: 3px;
+      border-radius: inherit;
+      border: 1px solid rgba(0, 0, 0, 0.2);
+      opacity: 0;
+      transform: scale(1.1);
+      transition: opacity 0.18s ease, transform 0.18s ease;
+      pointer-events: none;
+    }
+
+    button#populate:hover,
+    #download:hover,
+    #print:hover,
+    #share:hover,
+    #save_cheque:hover,
+    .btns button:hover {
+      background: #111;
+      color: #fdfdfd;
+      border-color: #111;
+      transform: translateY(-1px);
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.65);
+    }
+
+    button#populate:hover::before,
+    #download:hover::before,
+    #print:hover::before,
+    #share:hover::before,
+    #save_cheque:hover::before,
+    .btns button:hover::before {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    /* Disabled state for unapproved cheques */
+    button[disabled] {
+      opacity: 0.4;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .right_box {
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    input#checkbox {
+      max-width: 15px;
+      height: 15px;
+      display: inline-block;
+      vertical-align: -webkit-baseline-middle;
+      line-height: 15px;
+      margin-left: 4px;
+    }
+
+    label {
+      font-family: var(--font-alt);
+      font-size: 12px;
+      color: #222;
+    }
+
+    /* ===== Advanced layout (kept) ===== */
+    .settings {
+      display: none;
+      margin-top: 10px;
+      padding: 14px 0 16px;
+      background: transparent;
+      border-radius: 0;
+      font-size: 12px;
+      color: #111;
+      box-shadow: none;
+    }
+
+    .adv-group {
+      margin-bottom: 14px;
+    }
+
+    .adv-title {
+      font-weight: 600;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-size: 11px;
+      font-family: var(--font-alt);
+      color: #444;
+    }
+
     .adv-label-row,
     .adv-input-row {
-      flex-wrap: wrap;
-      gap: 6px;
+      display: flex;
+      gap: 10px;
+      margin-bottom: 4px;
     }
-  }
 
-  /* === extra rectangle enforcement for that row (desktop + mobile) === */
-  .print_cheque #download,
-  .print_cheque #print,
-  .print_cheque #share {
-    border-radius: 0;
-  }
-  @media (max-width:767px){
+    .adv-label-row span {
+      flex: 0 0 auto;
+      font-size: 11px;
+      opacity: 0.85;
+      min-width: 60px;
+    }
+
+    .adv-input-row input {
+      flex: 0 0 auto;
+      width: 70px;
+      height: 32px;
+      padding: 4px 6px;
+      box-sizing: border-box;
+      border: 1px solid rgba(0, 0, 0, 0.3);
+      border-radius: 4px;
+      font-size: 12px;
+      font-family: var(--font-ui);
+    }
+
+    .adv-input-row input[type="number"] {
+      text-align: center;
+    }
+
+    /* ===== Responsive ===== */
+    @media screen and (max-width: 991px) {
+      .print_cheque {
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        padding: 70px 18px 40px;
+        gap: 30px;
+      }
+      .right_box canvas {
+        zoom: 60%;
+      }
+      .left_box {
+        width: 100%;
+        max-width: 100%;
+        margin-right: 0;
+      }
+      .print_cheque {
+        min-height: 100vh;
+      }
+    }
+
+    @media screen and (max-width: 767px) {
+      .right_box canvas {
+        zoom: 45%;
+      }
+
+      .left_box h3 {
+        font-size: 20px;
+        letter-spacing: 0.18em;
+      }
+      .left_box {
+        width: 100%;
+      }
+
+      .btns {
+        width: 100%;
+        justify-content: center;
+        gap: 6px;
+        flex-wrap: nowrap;
+      }
+      .btns button {
+        flex: 1 1 0;
+        width: auto;
+        min-width: 0;
+        font-size: 9px;
+        letter-spacing: 0.12em;
+        padding: 0 6px;
+        border-radius: 0;
+      }
+      .btns button i {
+        font-size: 14px;
+        margin-left: 4px;
+        vertical-align: middle;
+      }
+
+      .adv-label-row,
+      .adv-input-row {
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+    }
+
     .print_cheque #download,
     .print_cheque #print,
     .print_cheque #share {
       border-radius: 0;
     }
-  }
-</style>
-
+    @media (max-width: 767px) {
+      .print_cheque #download,
+      .print_cheque #print,
+      .print_cheque #share {
+        border-radius: 0;
+      }
+    }
+  </style>
 </head>
 <body>
+  <span class="msg"></span>
+  <div class="print_cheque">
+    <div class="left_box">
+      <h3 id="cheque_title">Write Cheque</h3>
 
- 
+      <!-- Bank selector INSIDE the cheque screen as well -->
+      <div class="bank-row">
+        <label for="bank_select">Bank</label>
+        <select id="bank_select">
+          <option value="bbk">Bank of Bahrain and Kuwait (BBK)</option>
+          <option value="nbb">National Bank of Bahrain</option>
+          <option value="ahli_united">Ahli United Bank</option>
+          <option value="alsalam">Alsalam Bank</option>
+          <option value="abc">Arab Banking Corporation</option>
+          <option value="bisb">Bahrain Islamic Bank</option>
+          <option value="bdb">Bahrain Development Bank</option>
+          <option value="cbb">Central Bank of Bahrain</option>
+          <option value="gib">Gulf International Bank</option>
+          <option value="hsbc_bh">HSBC Bank Middle East</option>
+        </select>
+      </div>
 
-<span class="msg"></span>
-<div class="print_cheque">
-  <div class="left_box">
-    <h3>Write Cheque BBK</h3>
+      <!-- Neutral company field (only used for file/share text, not printed on cheque background) -->
+      <input
+        type="text"
+        id="company"
+        placeholder="Company name (optional)"
+        autocomplete="on"
+      />
 
-    <select id="company">
-      <option>Intermid Consultancy</option>
-      <option>Intermid Training Center</option>
-      <option>Intergulf</option>
-      <option>IDP</option>
-    </select>
+      <input type="text" id="ch_name" placeholder="Name" autocomplete="on" />
+      <input type="date" id="ch_date" />
+      <input
+        type="number"
+        min="1"
+        step="any"
+        id="ch_amount"
+        placeholder="Amount"
+      />
 
-    <input type="text" id="ch_name" placeholder="Name" autocomplete="on">
-    <input type="date" id="ch_date">
-    <input type="number" min="1" step="any" id="ch_amount" placeholder="Amount"/>
+      <div class="btns">
+        <!-- NEW: Save button (hidden in view/print mode via JS) -->
+        <button id="save_cheque" type="button">
+          Save
+          <i class="fa fa-floppy-o" aria-hidden="true"></i>
+        </button>
 
-    <div class="btns">
-      <button id="populate" style="display:none;">Sign<i class="fa fa-pencil-square-o" aria-hidden="true"></i></button>
-      <button id="download">Download<i class="fa fa-download" aria-hidden="true"></i></button>
-      <button type="button" id="print">Print<i class="fa fa-print" aria-hidden="true"></i></button>
-      <button id="share">Share<i class="fa fa-share-alt" aria-hidden="true"></i></button>
+        <!-- Hidden "Sign" (internal) -->
+        <button id="populate" style="display: none;">
+          Sign<i class="fa fa-pencil-square-o" aria-hidden="true"></i>
+        </button>
+
+        <!-- Download / Print / Share will be blocked until approved -->
+        <button id="download" type="button">
+          Download<i class="fa fa-download" aria-hidden="true"></i>
+        </button>
+        <button type="button" id="print">
+          Print<i class="fa fa-print" aria-hidden="true"></i>
+        </button>
+        <button id="share" type="button">
+          Share<i class="fa fa-share-alt" aria-hidden="true"></i>
+        </button>
+      </div>
+
+      <label style="margin-top: 4px;">
+        Advanced
+        <input type="checkbox" id="checkbox" onchange="showTextbox()" />
+      </label>
+
+      <!-- SETTINGS (advanced calibration – kept as is) -->
+      <div class="settings">
+        <!-- Line lengths -->
+        <div class="adv-group">
+          <div class="adv-title">Line lengths</div>
+          <div class="adv-label-row">
+            <span>Line 1</span>
+            <span>Line 2</span>
+          </div>
+          <div class="adv-input-row">
+            <input
+              type="number"
+              id="line_length"
+              class="line_length"
+              value="33"
+            />
+            <input
+              type="number"
+              id="line_length2"
+              class="line_length"
+              value="33"
+            />
+          </div>
+        </div>
+
+        <!-- Name (Payee) -->
+        <div class="adv-group">
+          <div class="adv-title">Name (Payee)</div>
+          <div class="adv-label-row">
+            <span>X</span>
+            <span>Y</span>
+            <span>Font px</span>
+            <span>Tracking px</span>
+          </div>
+          <div class="adv-input-row">
+            <input type="number" id="cfg_name_x" value="115" step="1" />
+            <input type="number" id="cfg_name_y" value="77" step="1" />
+            <input type="number" id="cfg_name_font" value="14" step="1" />
+            <input type="number" id="cfg_name_track" value="0" step="0.2" />
+          </div>
+        </div>
+
+        <!-- Amount (in words) -->
+        <div class="adv-group">
+          <div class="adv-title">Amount (in words)</div>
+          <div class="adv-label-row">
+            <span>Start X</span>
+            <span>Start Y</span>
+            <span>Line gap px</span>
+            <span>Font px</span>
+            <span>Tracking px</span>
+          </div>
+          <div class="adv-input-row">
+            <input type="number" id="cfg_words_x" value="90" step="1" />
+            <input type="number" id="cfg_words_y" value="110" step="1" />
+            <input type="number" id="cfg_words_gap" value="28" step="1" />
+            <input type="number" id="cfg_words_font" value="14" step="1" />
+            <input type="number" id="cfg_words_track" value="0" step="0.2" />
+          </div>
+        </div>
+
+        <!-- Amount (numbers) -->
+        <div class="adv-group">
+          <div class="adv-title">Amount (numbers)</div>
+          <div class="adv-label-row">
+            <span>X</span>
+            <span>Y</span>
+            <span>Font px</span>
+          </div>
+          <div class="adv-input-row">
+            <input type="number" id="cfg_num_x" value="410" step="1" />
+            <input type="number" id="cfg_num_y" value="143" step="1" />
+            <input type="number" id="cfg_num_font" value="18" step="1" />
+          </div>
+        </div>
+
+        <!-- Date digits -->
+        <div class="adv-group">
+          <div class="adv-title">Date digits</div>
+          <div class="adv-label-row">
+            <span>Base X</span>
+            <span>Base Y</span>
+            <span>Gap day→</span>
+            <span>Gap mon→</span>
+            <span>Gap year→</span>
+            <span>Font px</span>
+          </div>
+          <div class="adv-input-row">
+            <input type="number" id="cfg_date_x" value="366" step="1" />
+            <input type="number" id="cfg_date_y" value="39" step="1" />
+            <input type="number" id="cfg_gap_day" value="21" step="0.5" />
+            <input type="number" id="cfg_gap_mon" value="21" step="0.5" />
+            <input type="number" id="cfg_gap_year" value="21" step="0.5" />
+            <input type="number" id="cfg_date_font" value="14" step="1" />
+          </div>
+        </div>
+
+        <!-- Global canvas -->
+        <div class="adv-group">
+          <div class="adv-title">Global canvas</div>
+          <div class="adv-label-row">
+            <span>Scale</span>
+            <span>Rotate°</span>
+          </div>
+          <div class="adv-input-row">
+            <input type="number" id="cfg_scale" value="1.16" step="0.01" />
+            <input type="number" id="cfg_rotate" value="90" step="1" />
+          </div>
+        </div>
+      </div>
     </div>
 
-    <label style="margin-top:4px;">
-      Advanced
-      <input type="checkbox" id="checkbox" onchange="showTextbox()">
-    </label>
-
-    <!-- SETTINGS with calibration + persistence -->
-    <div class="settings">
-      <!-- Line lengths -->
-      <div class="adv-group">
-        <div class="adv-title">Line lengths</div>
-        <div class="adv-label-row">
-          <span>Line 1</span>
-          <span>Line 2</span>
-        </div>
-        <div class="adv-input-row">
-          <input type="number" id="line_length"   class="line_length" value="33">
-          <input type="number" id="line_length2" class="line_length" value="33">
-        </div>
-      </div>
-
-      <!-- Name (Payee) -->
-      <div class="adv-group">
-        <div class="adv-title">Name (Payee)</div>
-        <div class="adv-label-row">
-          <span>X</span>
-          <span>Y</span>
-          <span>Font px</span>
-          <span>Tracking px</span>
-        </div>
-        <div class="adv-input-row">
-          <input type="number" id="cfg_name_x"    value="115" step="1">
-          <input type="number" id="cfg_name_y"    value="77"  step="1">
-          <input type="number" id="cfg_name_font" value="14"  step="1">
-          <input type="number" id="cfg_name_track"value="0"   step="0.2">
-        </div>
-      </div>
-
-      <!-- Amount (in words) -->
-      <div class="adv-group">
-        <div class="adv-title">Amount (in words)</div>
-        <div class="adv-label-row">
-          <span>Start X</span>
-          <span>Start Y</span>
-          <span>Line gap px</span>
-          <span>Font px</span>
-          <span>Tracking px</span>
-        </div>
-        <div class="adv-input-row">
-          <input type="number" id="cfg_words_x"    value="90"  step="1">
-          <input type="number" id="cfg_words_y"    value="110" step="1">
-          <input type="number" id="cfg_words_gap"  value="28"  step="1">
-          <input type="number" id="cfg_words_font" value="14"  step="1">
-          <input type="number" id="cfg_words_track"value="0"   step="0.2">
-        </div>
-      </div>
-
-      <!-- Amount (numbers) -->
-      <div class="adv-group">
-        <div class="adv-title">Amount (numbers)</div>
-        <div class="adv-label-row">
-          <span>X</span>
-          <span>Y</span>
-          <span>Font px</span>
-        </div>
-        <div class="adv-input-row">
-          <input type="number" id="cfg_num_x"    value="410" step="1">
-          <input type="number" id="cfg_num_y"    value="143" step="1">
-          <input type="number" id="cfg_num_font" value="18"  step="1">
-        </div>
-      </div>
-
-      <!-- Date digits -->
-      <div class="adv-group">
-        <div class="adv-title">Date digits</div>
-        <div class="adv-label-row">
-          <span>Base X</span>
-          <span>Base Y</span>
-          <span>Gap day→</span>
-          <span>Gap mon→</span>
-          <span>Gap year→</span>
-          <span>Font px</span>
-        </div>
-        <div class="adv-input-row">
-          <input type="number" id="cfg_date_x"    value="366" step="1">
-          <input type="number" id="cfg_date_y"    value="39"  step="1">
-          <input type="number" id="cfg_gap_day"   value="21"  step="0.5">
-          <input type="number" id="cfg_gap_mon"   value="21"  step="0.5">
-          <input type="number" id="cfg_gap_year"  value="21"  step="0.5">
-          <input type="number" id="cfg_date_font" value="14"  step="1">
-        </div>
-      </div>
-
-      <!-- Global canvas -->
-      <div class="adv-group">
-        <div class="adv-title">Global canvas</div>
-        <div class="adv-label-row">
-          <span>Scale</span>
-          <span>Rotate°</span>
-        </div>
-        <div class="adv-input-row">
-          <input type="number" id="cfg_scale"  value="1.16" step="0.01">
-          <input type="number" id="cfg_rotate" value="90"   step="1">
-        </div>
-      </div>
+    <div class="right_box">
+      <!-- LOCAL IMAGE in same folder -->
+      <img
+        style="display: none;"
+        crossorigin="Anonymous"
+        id="temp_img"
+        class="private"
+        src="bbk-3.jpg"
+      />
+      <canvas id="cheque_img_back"></canvas>
+      <canvas id="cheque_img"></canvas>
     </div>
   </div>
 
-  <div class="right_box">
-    <!-- LOCAL IMAGE in same folder -->
-    <img style="display:none;" crossorigin="Anonymous" id="temp_img" class="private" src="bbk-3.jpg"/>
-    <canvas id="cheque_img_back"></canvas>
-    <canvas id="cheque_img"></canvas>
-  </div>
-</div>
+  <!-- libs -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/jspdf/1.3.3/jspdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/print-js/1.6.0/print.min.js"></script>
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="//cdnjs.cloudflare.com/ajax/libs/jspdf/1.3.3/jspdf.min.js"></script>
+  <script>
+    /* ================== Calibration config & persistence ================= */
+    const DEFAULT_CFG = {
+      name_x: 115,
+      name_y: 77,
+      name_font: 14,
+      name_track: 0,
+      words_x: 90,
+      words_y: 110,
+      words_gap: 28,
+      words_font: 14,
+      words_track: 0,
+      num_x: 410,
+      num_y: 143,
+      num_font: 18,
+      date_x: 366,
+      date_y: 39,
+      gap_day: 21,
+      gap_mon: 21,
+      gap_year: 21,
+      date_font: 14,
+      scale: 1.16,
+      rotate: 90,
+    };
+    const STORAGE_KEY = "cheque_calibration_v1";
 
-<script>
-/* ===================== printJS bundle (unchanged) ===================== */
-!function(e,t){"object"==typeof exports&&"object"==typeof module?module.exports=t():"function"==typeof define&&define.amd?define([],t):"object"==typeof exports?exports.printJS=t():e.printJS=t()}(window,(function(){return function(e){var t={};function n(r){if(t[r])return t[r].exports;var o=t[r]={i:r,l:!1,exports:{}};return e[r].call(o.exports,o,o.exports,n),o.l=!0,o.exports}return n.m=e,n.c=t,n.d=function(e,t,r){n.o(e,t)||Object.defineProperty(e,t,{enumerable:!0,get:r})},n.r=function(e){"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(e,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(e,"__esModule",{value:!0})},n.t=function(e,t){if(1&t&&(e=n(e)),8&t)return e;if(4&t&&"object"==typeof e&&e&&e.__esModule)return e;var r=Object.create(null);if(n.r(r),Object.defineProperty(r,"default",{enumerable:!0,value:e}),2&t&&"string"!=typeof e)for(var o in e)n.d(r,o,function(t){return e[t]}.bind(null,o));return r},n.n=function(e){var t=e&&e.__esModule?function(){return e["default"]}:function(){return e};return n.d(t,"a",t),t},n.o=function(e,t){return Object.prototype.hasOwnProperty.call(e,t)},n.p="",n(n.s=0)}([function(e,t,n){e.exports=n(2)},function(e,t,n){},function(e,t,n){"use strict";n.r(t);n(1);var r={isFirefox:function(){return"undefined"!=typeof InstallTrigger},isIE:function(){return-1!==navigator.userAgent.indexOf("MSIE")||!!document.documentMode},isEdge:function(){return!r.isIE()&&!!window.StyleMedia},isChrome:function(){var e=arguments.length>0&&arguments[0]!==undefined?arguments[0]:window;return!!e.chrome},isSafari:function(){return Object.prototype.toString.call(window.HTMLElement).indexOf("Constructor")>0||-1!==navigator.userAgent.toLowerCase().indexOf("safari")},isIOSChrome:function(){return-1!==navigator.userAgent.toLowerCase().indexOf("crios")}},o=r,i={show:function(e){var t=document.createElement("div");t.setAttribute("style","font-family:sans-serif; display:table; text-align:center; font-weight:300; font-size:30px; left:0; top:0;position:fixed; z-index: 9990;color: #0460B5; width: 100%; height: 100%; background-color:rgba(255,255,255,.9);transition: opacity .3s ease;"),t.setAttribute("id","printJS-Modal");var n=document.createElement("div");n.setAttribute("style","display:table-cell; vertical-align:middle; padding-bottom:100px;");var r=document.createElement("div");r.setAttribute("class","printClose"),r.setAttribute("id","printClose"),n.appendChild(r);var o=document.createElement("span");o.setAttribute("class","printSpinner"),n.appendChild(o);var a=document.createTextNode(e.modalMessage);n.appendChild(a),t.appendChild(n),document.getElementsByTagName("body")[0].appendChild(t),document.getElementById("printClose").addEventListener("click",(function(){i.close()}))},close:function(){var e=document.getElementById("printJS-Modal");e&&e.parentNode.removeChild(e)}},a=i;function l(e){return(l="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(e){return typeof e}:function(e){return e&&"function"==typeof Symbol&&e.constructor===Symbol&&e!==Symbol.prototype?"symbol":typeof e})(e)}function d(e){return e.charAt(0).toUpperCase()+e.slice(1)}function c(e,t){for(var n=0;n<e.length;n++)if("object"===l(t)&&-1!==t.indexOf(e[n]))return!0;return!1}function s(e,t){var n,r=document.createElement("div");if(n=t.header,new RegExp("<([A-Za-z][A-Za-z0-9]*)\\b[^>]*>(.*?)</\\1>").test(n))r.innerHTML=t.header;else{var o=document.createElement("h1"),i=document.createTextNode(t.header);o.appendChild(i),o.setAttribute("style",t.headerStyle),r.appendChild(o)}e.insertBefore(r,e.childNodes[0])}function p(e){e.showModal&&a.close(),e.onLoadingEnd&&e.onLoadingEnd(),(e.showModal||e.onLoadingStart)&&window.URL.revokeObjectURL(e.printable);var t="mouseover";(o.isChrome()||o.isFirefox())&&(t="focus");window.addEventListener(t,(function n(){window.removeEventListener(t,n),e.onPrintDialogClose();var r=document.getElementById(e.frameId);r&&r.remove()}))}function u(e,t){try{if(e.focus(),o.isEdge()||o.isIE())try{e.contentWindow.document.execCommand("print",!1,null)}catch(n){e.contentWindow.print()}else e.contentWindow.print()}catch(r){t.onError(r)}finally{o.isFirefox()&&(e.style.visibility="hidden",e.style.left="-1px"),p(t)}}var f={send:function(e,t){document.getElementsByTagName("body")[0].appendChild(t);var n=document.getElementById(e.frameId);n.onload=function(){if("pdf"!==e.type){var t=n.contentWindow||n.contentDocument;if(t.document&&(t=t.document),t.body.appendChild(e.printableElement),"pdf"!==e.type&&e.style){var r=document.createElement("style");r.innerHTML=e.style,t.head.appendChild(r)}var i=t.getElementsByTagName("img");i.length>0?function(e){var t=e.map((function(e){if(e.src&&e.src!==window.location.href)return function(e){return new Promise((function(t){(function n(){e&&"undefined"!=typeof e.naturalWidth&&0!==e.naturalWidth&&e.complete?t():setTimeout(n,500)})()}))}(e)}));return Promise.all(t)}(Array.from(i)).then((function(){return u(n,e)})):u(n,e)}else o.isFirefox()?setTimeout((function(){return u(n,e)}),1e3):u(n,e)}}},m=function(e,t){if(e.base64){var n=Uint8Array.from(atob(e.printable),(function(e){return e.charCodeAt(0)}));b(e,t,n)}else{e.printable=/^(blob|http|\/\/)/i.test(e.printable)?e.printable:window.location.origin+("/"!==e.printable.charAt(0)?"/"+e.printable:e.printable);var r=new window.XMLHttpRequest;r.responseType="arraybuffer",r.addEventListener("error",(function(){p(e),e.onError(r.statusText)})),r.addEventListener("load",(function(){if(-1===[200,201].indexOf(r.status))return p(e),void e.onError(r.statusText);b(e,t,r.response)})),r.open("GET",e.printable,!0),r.send()}};function b(e,t,n){var r=new window.Blob([n],{type:"application/pdf"});r=window.URL.createObjectURL(r),t.setAttribute("src",r),f.send(e,t)}var y=function(e,t){var n=document.getElementById(e.printable);n?(e.printableElement=function r(e,t){for(var n=e.cloneNode(),o=Array.prototype.slice.call(e.childNodes),i=0;i<o.length;i++)if(-1===t.ignoreElements.indexOf(o[i].id)){var a=r(o[i],t);n.appendChild(a)}t.scanStyles&&1===e.nodeType&&n.setAttribute("style",function(e,t){for(var n="",r=(document.defaultView||window).getComputedStyle(e,""),o=0;o<r.length;o++)(-1!==t.targetStyles.indexOf("*")||-1!==t.targetStyle.indexOf(r[o])||c(t.targetStyles,r[o]))&&r.getPropertyValue(r[o])&&(n+=r[o]+":"+r.getPropertyValue(r[o])+";");return n+"max-width: "+t.maxWidth+"px !important; font-size: "+t.font_size+" !important;"}(e,t));switch(e.tagName){case"SELECT":n.value=e.value;break;case"CANVAS":n.getContext("2d").drawImage(e,0,0)}return n}(n,e),e.header&&s(e.printableElement,e),f.send(e,t)):window.console.error("Invalid HTML element id: "+e.printable)};var h=function(e,t){e.printableElement=document.createElement("div"),e.printableElement.setAttribute("style","width:100%"),e.printableElement.innerHTML=e.printable,f.send(e,t)},g=function(e,t){e.printable.constructor!==Array&&(e.printable=[e.printable]),e.printableElement=document.createElement("div"),e.printable.forEach((function(t){var n=document.createElement("img");if(n.setAttribute("style",e.imageStyle),n.src=t,o.isFirefox()){var r=n.src;n.src=r}var i=document.createElement("div");i.appendChild(n),e.printableElement.appendChild(i)})),e.header&&s(e.printableElement,e),f.send(e,t)};function w(e){return(w="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(e){return typeof e}:function(e){return e&&"function"==typeof Symbol&&e.constructor===Symbol&&e!==Symbol.prototype?"symbol":typeof e})(e)}var v=function(e,t){if("object"!==w(e.printable))throw new Error("Invalid javascript data object (JSON).");if("boolean"!=typeof e.repeatTableHeader)throw new Error("Invalid value for repeatTableHeader attribute (JSON).");if(!e.properties||!Array.isArray(e.properties))throw new Error("Invalid properties array for your JSON data.");e.properties=e.properties.map((function(t){return{field:"object"===w(t)?t.field:t,displayName:"object"===w(t)?t.displayName:t,columnSize:"object"===w(t)&&t.columnSize?t.columnSize+";":100/e.properties.length+"%;"}})),e.printableElement=document.createElement("div"),e.header&&s(e.printableElement,e),e.printableElement.innerHTML+=function(e){var t=e.printable,n=e.properties,r='<table style="border-collapse: collapse; width: 100%;">';e.repeatTableHeader&&(r+="<thead>");r+="<tr>";for(var o=0;o<n.length;o++)r+='<th style="width:'+n[o].columnSize+";"+e.gridHeaderStyle+'">'+d(n[o].displayName)+"</th>";r+="</tr>",e.repeatTableHeader&&(r+="</thead>");r+="<tbody>";for(var i=0;i<t.length;i++){r+="<tr>";for(var a=0;a<n.length;a++){var l=t[i],c=n[a].field.split(".");if(c.length>1)for(var s=0;s<c.length;s++)l=l[c[s]];else l=l[n[a].field];r+='<td style="width:'+n[a].columnSize+e.gridStyle+'">'+l+"</td>"}r+="</tr>"}return r+="</tbody></table>"}(e),f.send(e,t)};function E(e){return(E="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(e){return typeof e}:function(e){return e&&"function"==typeof Symbol&&e.constructor===Symbol&&e!==Symbol.prototype?"symbol":typeof e})(e)}var S=["pdf","html","image","json","raw-html"],x=function(){var e={printable:null,fallbackPrintable:null,type:"pdf",header:null,headerStyle:"font-weight: 300;",maxWidth:800,properties:null,gridHeaderStyle:"font-weight: bold; padding: 5px; border: 1px solid #dddddd;",gridStyle:"border: 1px solid lightgray; margin-bottom: -1px;",showModal:!1,onError:function(e){throw e},onLoadingStart:null,onLoadingEnd:null,onPrintDialogClose:function(){},onIncompatibleBrowser:function(){},modalMessage:"Retrieving Document...",frameId:"printJS",printableElement:null,documentTitle:"Document",targetStyle:["clear","display","width","min-width","height","min-height","max-height"],targetStyles:["border","box","break","text-decoration"],ignoreElements:[],repeatTableHeader:!0,css:null,style:null,scanStyles:!0,base64:!1,onPdfOpen:null,font:"TimesNewRoman",font_size:"12pt",honorMarginPadding:!0,honorColor:!1,imageStyle:"max-width: 100%;"},t=arguments[0];if(t===undefined)throw new Error("printJS expects at least 1 attribute.");switch(E(t)){case"string":e.printable=encodeURI(t),e.fallbackPrintable=e.printable,e.type=arguments[1]||e.type;break;case"object":for(var n in e.printable=t.printable,e.fallbackPrintable="undefined"!=typeof t.fallbackPrintable?t.fallbackPrintable:e.printable,e.fallbackPrintable=e.base64?"data:application/pdf;base64,".concat(e.fallbackPrintable):e.fallbackPrintable,e)"printable"!==n&&"fallbackPrintable"!==n&&(e[n]="undefined"!=typeof t[n]?t[n]:e[n]);break;default:throw new Error('Unexpected argument type! Expected "string" or "object", got '+E(t))}if(!e.printable)throw new Error("Missing printable information.");if(!e.type||"string"!=typeof e.type||-1===S.indexOf(e.type.toLowerCase()))throw new Error("Invalid print type. Available types are: pdf, html, image and json.");e.showModal&&a.show(e),e.onLoadingStart&&e.onLoadingStart();var r=document.getElementById(e.frameId);r&&r.parentNode.removeChild(r);var i=document.createElement("iframe");switch(o.isFirefox()?i.setAttribute("style","width: 1px; height: 100px; position: fixed; left: 0; top: 0; opacity: 0; border-width: 0; margin: 0; padding: 0"):i.setAttribute("style","visibility: hidden; height: 0; width: 0; position: absolute; border: 0"),i.setAttribute("id",e.frameId),"pdf"!==e.type&&(i.srcdoc="<html><head><title>"+e.documentTitle+"</title>",e.css&&(Array.isArray(e.css)||(e.css=[e.css]),e.css.forEach((function(e){i.srcdoc+='<link rel="stylesheet" href="'+e+'">'}))),i.srcdoc+="</head><body></body></html>"),e.type){case"pdf":if(o.isIE())try{console.info("Print.js doesn't support PDF printing in Internet Explorer.");var l=window.open(e.fallbackPrintable,"_blank");l.focus(),e.onIncompatibleBrowser()}catch(d){e.onError(d)}finally{e.showModal&&a.close(),e.onLoadingEnd&&e.onLoadingEnd()}else m(e,i);break;case"image":g(e,i);break;case"html":y(e,i);break;case"raw-html":h(e,i);break;case"json":v(e,i)}};"undefined"!=typeof window&&(window.printJS=x);t["default"]=x}])["default"]}));
+    /* ====== URL + approval flags ====== */
+    const URL_PARAMS = new URLSearchParams(window.location.search);
+    const CHEQUE_ID = URL_PARAMS.get("id");
+    const MODE = URL_PARAMS.get("mode") || "new"; // 'new' or 'view'
+    const IS_VIEW_MODE = MODE === "view";         // for hiding Save button
+    const IS_APPROVED =
+      URL_PARAMS.get("approved") === "1" ||
+      URL_PARAMS.get("approved") === "true";
 
-/* ==================================================================== */
+    // Use 3001 backend in dev, /api in prod
+    const API_BASE = window.location.origin.includes("localhost:5173")
+      ? "http://localhost:3001/api"
+      : "/api";
 
-/* ================== Calibration config & persistence ================= */
-const DEFAULT_CFG = {
-  name_x:115, name_y:77, name_font:14, name_track:0,
-  words_x:90, words_y:110, words_gap:28, words_font:14, words_track:0,
-  num_x:410, num_y:143, num_font:18,
-  date_x:366, date_y:39, gap_day:21, gap_mon:21, gap_year:21, date_font:14,
-  scale:1.16, rotate:90
-};
-const STORAGE_KEY = 'cheque_calibration_v1';
-
-function applyCfgToInputs(cfg){
-  const set = (id,val)=>{ const el=document.getElementById(id); if(el) el.value = val; };
-  set('cfg_name_x', cfg.name_x); set('cfg_name_y', cfg.name_y);
-  set('cfg_name_font', cfg.name_font); set('cfg_name_track', cfg.name_track);
-
-  set('cfg_words_x', cfg.words_x); set('cfg_words_y', cfg.words_y);
-  set('cfg_words_gap', cfg.words_gap); set('cfg_words_font', cfg.words_font);
-  set('cfg_words_track', cfg.words_track);
-
-  set('cfg_num_x', cfg.num_x); set('cfg_num_y', cfg.num_y); set('cfg_num_font', cfg.num_font);
-
-  set('cfg_date_x', cfg.date_x); set('cfg_date_y', cfg.date_y);
-  set('cfg_gap_day', cfg.gap_day); set('cfg_gap_mon', cfg.gap_mon); set('cfg_gap_year', cfg.gap_year);
-  set('cfg_date_font', cfg.date_font);
-
-  set('cfg_scale', cfg.scale); set('cfg_rotate', cfg.rotate);
-}
-function loadCalibration(){
-  try{
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return {...DEFAULT_CFG};
-    const parsed = JSON.parse(raw);
-    return {...DEFAULT_CFG, ...parsed};
-  }catch(e){ return {...DEFAULT_CFG}; }
-}
-function saveCalibration(){
-  try{
-    const cfg = readCfgFromInputs();
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(cfg));
-  }catch(e){}
-}
-
-function readCfgFromInputs(){
-  const gv = id => Number(document.getElementById(id)?.value || 0);
-  return {
-    name_x: gv('cfg_name_x'), name_y: gv('cfg_name_y'), name_font: gv('cfg_name_font'), name_track: gv('cfg_name_track'),
-    words_x: gv('cfg_words_x'), words_y: gv('cfg_words_y'), words_gap: gv('cfg_words_gap'), words_font: gv('cfg_words_font'), words_track: gv('cfg_words_track'),
-    num_x: gv('cfg_num_x'), num_y: gv('cfg_num_y'), num_font: gv('cfg_num_font'),
-    date_x: gv('cfg_date_x'), date_y: gv('cfg_date_y'), gap_day: gv('cfg_gap_day'), gap_mon: gv('cfg_gap_mon'), gap_year: gv('cfg_gap_year'), date_font: gv('cfg_date_font'),
-    scale: Number(document.getElementById('cfg_scale')?.value || DEFAULT_CFG.scale),
-    rotate: Number(document.getElementById('cfg_rotate')?.value || DEFAULT_CFG.rotate),
-  };
-}
-/* ==================================================================== */
-
-/* ==================== Drawing helpers (tracking/scale) =============== */
-function fillTextWithTracking(ctx, text, x, y, trackingPx){
-  if (!trackingPx) { ctx.fillText(text, x, y); return; }
-  let cur = x;
-  for (const ch of text) {
-    ctx.fillText(ch, cur, y);
-    cur += ctx.measureText(ch).width + trackingPx;
-  }
-}
-function draw_canvas_with_cfg(cfg) {
-  var cb = document.getElementById("cheque_img_back");
-  var c  = document.getElementById("cheque_img");
-  var img = document.getElementById("temp_img");
-
-  if (!img || !img.complete || img.naturalWidth === 0) {
-    return;
-  }
-
-  var ctx = c.getContext("2d");
-  var ctx_b= cb.getContext("2d");
-  ctx.canvas.width  = 650;
-  ctx.canvas.height = img.height;
-  ctx.setTransform(1,0,0,1,0,0);
-  ctx.scale(cfg.scale, cfg.scale);
-  ctx_b.canvas.width  = 650;
-  ctx_b.canvas.height = img.height;
-  ctx_b.setTransform(1,0,0,1,0,0);
-  ctx_b.scale(cfg.scale, cfg.scale);
-  ctx.clearRect(0,0,c.width,c.height);
-  ctx_b.clearRect(0,0,cb.width,cb.height);
-  ctx_b.drawImage(img, 0, 0);
-}
-/* ==================================================================== */
-
-function draw_canvas() {
-  var cb = document.getElementById("cheque_img_back");
-  var c = document.getElementById("cheque_img");
-  var img = document.getElementById("temp_img");
-  img.crossOrigin="Anonymous";
-  var ctx = c.getContext("2d");
-  var ctx_b=  cb.getContext("2d");
-  ctx.canvas.width  = 650;
-  ctx.canvas.height = img.height;
-  ctx.scale(1.16, 1.16);
-  ctx_b.canvas.width  = 650;
-  ctx_b.canvas.height = img.height;
-  ctx_b.scale(1.16, 1.16);
-  ctx_b.drawImage(img, 0, 0);
-}
-
-/* ======== WAIT FOR IMAGE BEFORE FIRST DRAW ======== */
-jQuery(document).ready(function() {
-  const cfg = loadCalibration();
-  applyCfgToInputs(cfg);
-
-  const img = document.getElementById('temp_img');
-  function initialDraw() {
-    draw_canvas_with_cfg(loadCalibration());
-  }
-
-  if (img) {
-    if (img.complete && img.naturalWidth !== 0) {
-      initialDraw();
-    } else {
-      img.onload = initialDraw;
-    }
-  }
-
-  const start_date = document.getElementById('ch_date');
-  if (start_date && !start_date.value) {
-    start_date.value = new Date().toISOString().split('T')[0];
-  }
-});
-/* ================================================== */
-
-function bhd(amount){
-  var words = new Array();
-  words[0] = 'zero';words[1] = 'One';words[2] = 'Two';words[3] = 'Three';words[4] = 'Four';words[5] = 'Five';words[6] = 'Six';words[7] = 'Seven';words[8] = 'Eight';words[9] = 'Nine';words[10] = 'Ten';words[11] = 'Eleven';words[12] = 'Twelve';words[13] = 'Thirteen';words[14] = 'Fourteen';words[15] = 'Fifteen';words[16] = 'Sixteen';words[17] = 'Seventeen';words[18] = 'Eighteen';words[19] = 'Nineteen';words[20] = 'Twenty';words[30] = 'Thirty';words[40] = 'Forty';words[50] = 'Fifty';words[60] = 'Sixty';words[70] = 'Seventy';words[80] = 'Eighty';words[90] = 'Ninety'; words[100] = 'One Hundred'; words[200] = 'Two Hundred'; words[300] = 'Three Hundred'; words[400] = 'Four Hundred'; words[500] = 'Five Hundred'; words[600] = 'Six Hundred'; words[700] = 'Seven Hundred'; words[800] = 'Eight Hundred'; words[900] = 'Nine Hundred';var op;
-  amount = amount.toString();
-  var atemp = amount.split('.');
-  var number = atemp[0].split(',').join('');
-  var n_length = number.length;
-  var words_string = '';
-  if(n_length <= 11){
-    var n_array = new Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-    var received_n_array = new Array();
-    for (var i = 0; i < n_length; i++){
-      received_n_array[i] = number.substr(i, 1);}
-    for (var i = 11 - n_length, j = 0; i < 11; i++, j++){
-      n_array[i] = received_n_array[j];}
-    for (var i = 0, j = 1; i < 11; i++, j++){
-      if(i == 0 || i == 3 || i == 6 || i == 9){
-        if(n_array[i] == 1){
-          n_array[j] = 10 + parseInt(n_array[j]);
-          n_array[i] = 0;}
-      }}
-    value = '';
-    for (var i = 0; i < 11; i++){
-      if(i == 0 || i == 3 || i == 6 || i == 9){
-        value = n_array[i] * 10;}
-      else if( i == 2 || i == 5 || i == 8){
-        value = n_array[i] * 100;} else {
-          value = n_array[i];}
-
-      if(value != 0){
-        words_string += words[value] + ' ';}
-      if((i == 1 && value != 0) && (n_array[i - 1] > 0)){
-        words_string += 'Billion ';}else if(( i == 1) && value != 0){
-          words_string += 'Biillion ';}
-      if((i == 4) && value == 0 && (n_array[i - 1] > 0 || n_array[i - 2] > 0)){
-        words_string += 'Million ';} else if(( i == 4) && value != 0){
-          words_string += 'Million ';}
-      if((i == 7) && value == 0 && (n_array[i - 1] > 0 || n_array[i - 2] > 0)){
-        words_string += 'Thousand ';} else if(( i == 7) && value != 0){
-          words_string += 'Thousand ';}}
-    words_string = words_string.split(' ').join(' ');}
-  return words_string;}
-
-jQuery("#populate").click(function() { generate_Cheque() });
-
-/* ================== UPDATED generate_Cheque() ================== */
-function generate_Cheque(){
-  var line_length  = Number(jQuery("#line_length").val());
-  var line_length2 = Number(jQuery("#line_length2").val());
-
-  if(jQuery("#ch_name").val().length>0 && jQuery("#ch_date").val().length>2 && jQuery("#ch_amount").val().length>0){
-
-    const cfg = readCfgFromInputs();
-    draw_canvas_with_cfg(cfg);
-
-    var c = document.getElementById("cheque_img");
-    var ctx = c.getContext("2d");
-    ctx.fillStyle = "#000";
-
-    // NAME (Payee)
-    let ch_name = jQuery("#ch_name").val().toUpperCase();
-    ctx.font = `${cfg.name_font}px Arial`;
-    fillTextWithTracking(ctx, ch_name, cfg.name_x, cfg.name_y, cfg.name_track);
-
-    // AMOUNT numeric + words
-    let amnt=jQuery("#ch_amount").val();
-    let amnt_arr=amnt.split(".");
-    var ch_amount="**"+bhd(amnt_arr[0]);
-
-    if(amnt_arr.length>1){
-      if(amnt_arr[1].length<=3){
-        let fils=bhd(amnt_arr[1]);
-        ch_amount=ch_amount+" And Fils "+fils+" Only**";
+    /* ======== FIND JWT TOKEN (for auth) ========= */
+    function findJwtToken() {
+      // Check common keys in localStorage
+      const commonKeys = ["token", "authToken", "accessToken", "jwt", "jwtToken"];
+      for (const k of commonKeys) {
+        try {
+          const v = localStorage.getItem(k);
+          if (v && v.length > 10) return v;
+        } catch (e) {}
       }
-      else{
-        alert("you can only add maximum three decimal palces for fills");
+
+      // Scan all localStorage keys for something that looks like a JWT
+      try {
+        for (let i = 0; i < localStorage.length; i++) {
+          const k = localStorage.key(i);
+          const v = localStorage.getItem(k);
+          if (typeof v === "string" && v.split(".").length === 3 && v.length > 20) {
+            return v;
+          }
+        }
+      } catch (e) {}
+
+      // Also check sessionStorage just in case
+      try {
+        for (let i = 0; i < sessionStorage.length; i++) {
+          const k = sessionStorage.key(i);
+          const v = sessionStorage.getItem(k);
+          if (typeof v === "string" && v.split(".").length === 3 && v.length > 20) {
+            return v;
+          }
+        }
+      } catch (e) {}
+
+      return null;
+    }
+
+    /* Bank templates mapping – placeholder images for now (10 active banks) */
+    const BANK_TEMPLATES = {
+      bbk: {
+        label: "Bank of Bahrain and Kuwait (BBK)",
+        image: "bbk-3.jpg",
+      },
+      nbb: {
+        label: "National Bank of Bahrain",
+        image: "bbk-3.jpg",
+      },
+      ahli_united: {
+        label: "Ahli United Bank",
+        image: "bbk-3.jpg",
+      },
+      alsalam: {
+        label: "Alsalam Bank",
+        image: "bbk-3.jpg",
+      },
+      abc: {
+        label: "Arab Banking Corporation",
+        image: "bbk-3.jpg",
+      },
+      bisb: {
+        label: "Bahrain Islamic Bank",
+        image: "bbk-3.jpg",
+      },
+      bdb: {
+        label: "Bahrain Development Bank",
+        image: "bbk-3.jpg",
+      },
+      cbb: {
+        label: "Central Bank of Bahrain",
+        image: "bbk-3.jpg",
+      },
+      gib: {
+        label: "Gulf International Bank",
+        image: "bbk-3.jpg",
+      },
+      hsbc_bh: {
+        label: "HSBC Bank Middle East",
+        image: "bbk-3.jpg",
+      },
+    };
+
+    function getInitialBankCode() {
+      try {
+        const fromQuery = URL_PARAMS.get("bank");
+        if (fromQuery && BANK_TEMPLATES[fromQuery]) {
+          return fromQuery;
+        }
+      } catch (e) {}
+      return "bbk";
+    }
+
+    function applyBankTemplate(bankCode) {
+      const cfgMap = BANK_TEMPLATES[bankCode] || BANK_TEMPLATES["bbk"];
+      const img = document.getElementById("temp_img");
+      const title = document.getElementById("cheque_title");
+
+      /* HEADING: keep fixed "Write Cheque" – do NOT append bank name */
+      if (title) {
+        title.textContent = "Write Cheque";
+      }
+
+      if (img && cfgMap && cfgMap.image) {
+        img.onload = function () {
+          draw_canvas_with_cfg(loadCalibration());
+        };
+        img.src = cfgMap.image;
+      } else {
+        draw_canvas_with_cfg(loadCalibration());
+      }
+    }
+
+    function applyCfgToInputs(cfg) {
+      const set = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.value = val;
+      };
+      set("cfg_name_x", cfg.name_x);
+      set("cfg_name_y", cfg.name_y);
+      set("cfg_name_font", cfg.name_font);
+      set("cfg_name_track", cfg.name_track);
+
+      set("cfg_words_x", cfg.words_x);
+      set("cfg_words_y", cfg.words_y);
+      set("cfg_words_gap", cfg.words_gap);
+      set("cfg_words_font", cfg.words_font);
+      set("cfg_words_track", cfg.words_track);
+
+      set("cfg_num_x", cfg.num_x);
+      set("cfg_num_y", cfg.num_y);
+      set("cfg_num_font", cfg.num_font);
+
+      set("cfg_date_x", cfg.date_x);
+      set("cfg_date_y", cfg.date_y);
+      set("cfg_gap_day", cfg.gap_day);
+      set("cfg_gap_mon", cfg.gap_mon);
+      set("cfg_gap_year", cfg.gap_year);
+      set("cfg_date_font", cfg.date_font);
+
+      set("cfg_scale", cfg.scale);
+      set("cfg_rotate", cfg.rotate);
+    }
+    function loadCalibration() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return { ...DEFAULT_CFG };
+        const parsed = JSON.parse(raw);
+        return { ...DEFAULT_CFG, ...parsed };
+      } catch (e) {
+        return { ...DEFAULT_CFG };
+      }
+    }
+    function saveCalibration() {
+      try {
+        const cfg = readCfgFromInputs();
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(cfg));
+      } catch (e) {}
+    }
+
+    function readCfgFromInputs() {
+      const gv = (id) =>
+        Number(document.getElementById(id)?.value || 0);
+      return {
+        name_x: gv("cfg_name_x"),
+        name_y: gv("cfg_name_y"),
+        name_font: gv("cfg_name_font"),
+        name_track: gv("cfg_name_track"),
+        words_x: gv("cfg_words_x"),
+        words_y: gv("cfg_words_y"),
+        words_gap: gv("cfg_words_gap"),
+        words_font: gv("cfg_words_font"),
+        words_track: gv("cfg_words_track"),
+        num_x: gv("cfg_num_x"),
+        num_y: gv("cfg_num_y"),
+        num_font: gv("cfg_num_font"),
+        date_x: gv("cfg_date_x"),
+        date_y: gv("cfg_date_y"),
+        gap_day: gv("cfg_gap_day"),
+        gap_mon: gv("cfg_gap_mon"),
+        gap_year: gv("cfg_gap_year"),
+        date_font: gv("cfg_date_font"),
+        scale: Number(
+          document.getElementById("cfg_scale")?.value ||
+            DEFAULT_CFG.scale
+        ),
+        rotate: Number(
+          document.getElementById("cfg_rotate")?.value ||
+            DEFAULT_CFG.rotate
+        ),
+      };
+    }
+
+    /* ==================== Drawing helpers (tracking/scale) =============== */
+    function fillTextWithTracking(ctx, text, x, y, trackingPx) {
+      if (!trackingPx) {
+        ctx.fillText(text, x, y);
         return;
       }
-      ctx.font = `${cfg.num_font}px Arial`;
-      ctx.fillText("**"+amnt_arr[0]+"/"+amnt_arr[1]+"**", cfg.num_x, cfg.num_y);
+      let cur = x;
+      for (const ch of text) {
+        ctx.fillText(ch, cur, y);
+        cur += ctx.measureText(ch).width + trackingPx;
+      }
     }
-    else{
-      ch_amount+=" Only**";
-      ctx.font = `${cfg.num_font}px Arial`;
-      ctx.fillText(amnt+"/-", cfg.num_x, cfg.num_y);
+    function draw_canvas_with_cfg(cfg) {
+      var cb = document.getElementById("cheque_img_back");
+      var c = document.getElementById("cheque_img");
+      var img = document.getElementById("temp_img");
+
+      if (!img || !img.complete || img.naturalWidth === 0) {
+        return;
+      }
+
+      var ctx = c.getContext("2d");
+      var ctx_b = cb.getContext("2d");
+      ctx.canvas.width = 650;
+      ctx.canvas.height = img.height;
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.scale(cfg.scale, cfg.scale);
+      ctx_b.canvas.width = 650;
+      ctx_b.canvas.height = img.height;
+      ctx_b.setTransform(1, 0, 0, 1, 0, 0);
+      ctx_b.scale(cfg.scale, cfg.scale);
+      ctx.clearRect(0, 0, c.width, c.height);
+      ctx_b.clearRect(0, 0, cb.width, cb.height);
+      ctx_b.drawImage(img, 0, 0);
     }
 
-    // Amount in words (wrapping with tracking)
-    ctx.font = `${cfg.words_font}px Arial`;
-    let x = cfg.words_x;
-    let y = cfg.words_y;
-    if(ch_amount.length>line_length){
-      let str_1= ch_amount.substring(0, line_length);
-      let str_2= ch_amount.substring(line_length, ch_amount.length);
-      let str_3= str_2.substring(0,line_length2);
-      let str_4= str_2.substring(line_length2,str_2.length);
-      fillTextWithTracking(ctx, str_1, x, y, cfg.words_track);
-      fillTextWithTracking(ctx, str_3, 30, y + cfg.words_gap, cfg.words_track);
-      fillTextWithTracking(ctx, str_4, 30, y + cfg.words_gap*2, cfg.words_track);
-    } else {
-      fillTextWithTracking(ctx, ch_amount, x, y, cfg.words_track);
+    function draw_canvas() {
+      var cb = document.getElementById("cheque_img_back");
+      var c = document.getElementById("cheque_img");
+      var img = document.getElementById("temp_img");
+      img.crossOrigin = "Anonymous";
+      var ctx = c.getContext("2d");
+      var ctx_b = cb.getContext("2d");
+      ctx.canvas.width = 650;
+      ctx.canvas.height = img.height;
+      ctx.scale(1.16, 1.16);
+      ctx_b.canvas.width = 650;
+      ctx_b.canvas.height = img.height;
+      ctx_b.scale(1.16, 1.16);
+      ctx_b.drawImage(img, 0, 0);
     }
 
-    // DATE digits (adjustable)
-    ctx.font = `${cfg.date_font}px Arial`;
-    let ch_date=jQuery("#ch_date").val();
-    let ch_date_ar_arr=ch_date.split("-"); // [yyyy, mm, dd]
+    /* ===== approval helper ===== */
+    function canPrintOrDownload() {
+      if (!IS_APPROVED) {
+        alert(
+          "This cheque is still pending approval.\nYou can only download / print after it is approved in the Approval menu."
+        );
+        return false;
+      }
+      return true;
+    }
 
-    const baseX = cfg.date_x, baseY = cfg.date_y;
-    // day
-    ctx.fillText(ch_date_ar_arr[2][0], baseX, baseY);
-    ctx.fillText(ch_date_ar_arr[2][1], baseX + cfg.gap_day, baseY);
-    // month
-    const monBase = baseX + cfg.gap_day + cfg.gap_mon;
-    ctx.fillText(ch_date_ar_arr[1][0], monBase, baseY);
-    ctx.fillText(ch_date_ar_arr[1][1], monBase + cfg.gap_mon, baseY);
-    // year
-    const yearBase = monBase + cfg.gap_mon + cfg.gap_year;
-    ctx.fillText(ch_date_ar_arr[0][0], yearBase, baseY);
-    ctx.fillText(ch_date_ar_arr[0][1], yearBase + cfg.gap_year, baseY);
-    ctx.fillText(ch_date_ar_arr[0][2], yearBase + cfg.gap_year*2, baseY);
-    ctx.fillText(ch_date_ar_arr[0][3], yearBase + cfg.gap_year*3, baseY);
+    /* ========= LOAD EXISTING CHEQUE WHEN COMING FROM VIEW/PRINT ========= */
+    async function loadExistingCheque() {
+      if (!CHEQUE_ID) return;
+      try {
+        const url = `${API_BASE}/cheques/${encodeURIComponent(CHEQUE_ID)}`;
+        const headers = { "Content-Type": "application/json" };
+        const token = findJwtToken();
+        if (token) {
+          headers["Authorization"] = `Bearer ${token}`;
+          headers["x-auth-token"] = token;
+        }
 
-    // persist latest calibrated values
-    saveCalibration();
+        const res = await fetch(url, {
+          method: "GET",
+          headers,
+          credentials: "include",
+        });
 
-  } else {
-    alert("Please Fill All the Details");
-  }
-}
-/* =============================================================== */
+        if (!res.ok) {
+          console.error("Failed to load cheque details", res.status);
+          return;
+        }
 
-function showTextbox() {
-  var checkbox = document.getElementById('checkbox');
-  var textbox = $('.settings');
-  if (checkbox.checked) { textbox.slideDown(); } else { textbox.slideUp(); }
-}
+        const data = (await res.json()) || {};
 
-function rotate(srcBase64, degrees, callback) {
-  const canvas = document.createElement('canvas');
-  const ctx    = canvas.getContext('2d');
-  const image  = new Image();
-  image.crossOrigin="anonymous";
-  image.onload = function () {
-    canvas.width  = degrees % 180 === 0 ? image.width : image.height;
-    canvas.height = degrees % 180 === 0 ? image.height : image.width;
-    ctx.translate(canvas.width / 2, canvas.height / 2);
-    ctx.rotate(degrees * Math.PI / 180);
-    ctx.drawImage(image, image.width / -2, image.height / -2);
-    callback(canvas.toDataURL());
-  };
-  image.src = srcBase64;
-}
+        const nameInput = document.getElementById("ch_name");
+        const dateInput = document.getElementById("ch_date");
+        const amountInput = document.getElementById("ch_amount");
+        const companyInput = document.getElementById("company");
+        const bankSelect = document.getElementById("bank_select");
 
-/* ================== SHARE / DOWNLOAD / PRINT (use cfg.rotate) ================== */
-const btn = document.querySelector('#share');
-const resultPara = document.querySelector('.result');
-btn.addEventListener('click', async () => {
-  jQuery("#populate").click();
-  if(jQuery("#ch_name").val().length>0 && jQuery("#ch_date").val().length>2 && jQuery("#ch_amount").val().length>0){
-    var canvas = document.getElementById('cheque_img');
-    var imgData = canvas.toDataURL("image/png", 1.0);
-    const cfg = readCfgFromInputs();
-    var pdf = new jsPDF();
-    rotate(imgData, cfg.rotate, function(resultBase64) {
-      pdf.addImage(resultBase64, 'png', 78.5, 0);
-      let pdf_output=pdf.output('blob');
-      var file = new File([pdf_output], "cheque.pdf", {type: 'application/pdf'});
-      var filesArray = [file];
-      var fname="From: "+jQuery("select#company").val()+"\n To: "+jQuery("input#ch_name").val();
-      if(navigator.canShare && navigator.canShare({ files: filesArray })) {
-        navigator.share({ text: fname, files: filesArray, title: 'Cheque', url: '' });
+        // Determine bank code
+        const bankCodeFromApi =
+          data.bankCode ||
+          (function () {
+            if (!data.bankName) return null;
+            const entry = Object.entries(BANK_TEMPLATES).find(
+              ([, value]) => value.label === data.bankName
+            );
+            return entry ? entry[0] : null;
+          })();
+
+        if (bankSelect && bankCodeFromApi && BANK_TEMPLATES[bankCodeFromApi]) {
+          bankSelect.value = bankCodeFromApi;
+          applyBankTemplate(bankCodeFromApi);
+        }
+
+        if (nameInput) {
+          nameInput.value =
+            data.beneficiaryName ||
+            data.payeeName ||
+            data.name ||
+            nameInput.value;
+        }
+
+        if (dateInput && data.date) {
+          let d = data.date;
+          if (typeof d === "string" && d.length >= 10) {
+            dateInput.value = d.substring(0, 10);
+          }
+        }
+
+        if (amountInput) {
+          const amt =
+            data.amount != null
+              ? data.amount
+              : data.chequeAmount != null
+              ? data.chequeAmount
+              : data.value;
+          if (amt != null) {
+            amountInput.value = amt;
+          }
+        }
+
+        if (companyInput) {
+          if (data.company) {
+            companyInput.value = data.company;
+          } else if (data.notes) {
+            const m = String(data.notes).match(/Company:\s*(.*)/i);
+            if (m && m[1]) {
+              companyInput.value = m[1];
+            }
+          }
+        }
+
+        // After filling fields, draw cheque preview if fields complete
+        if (
+          nameInput &&
+          dateInput &&
+          amountInput &&
+          nameInput.value &&
+          dateInput.value &&
+          amountInput.value
+        ) {
+          generate_Cheque();
+        }
+      } catch (err) {
+        console.error("Error loading cheque details", err);
+      }
+    }
+
+    /* ======== WAIT FOR IMAGE + BANK SELECTION ======== */
+    jQuery(document).ready(function () {
+      const cfg = loadCalibration();
+      applyCfgToInputs(cfg);
+
+      const start_date = document.getElementById("ch_date");
+      if (start_date && !start_date.value) {
+        start_date.value = new Date().toISOString().split("T")[0];
+      }
+
+      const bankSelect = document.getElementById("bank_select");
+      const initialBank = getInitialBankCode();
+
+      if (bankSelect) {
+        bankSelect.value = initialBank;
+        bankSelect.addEventListener("change", function () {
+          applyBankTemplate(this.value);
+        });
+      }
+
+      applyBankTemplate(initialBank);
+
+      // If opened from View / Print (existing cheque), load its data
+      if (CHEQUE_ID && MODE !== "new") {
+        loadExistingCheque();
+      }
+
+      // Hide Save button when not in "new" mode (view / print from list)
+      if (IS_VIEW_MODE) {
+        const saveBtn = document.getElementById("save_cheque");
+        if (saveBtn) {
+          saveBtn.style.display = "none";
+        }
+      }
+
+      // Disable print/download/share buttons for unapproved cheques
+      if (!IS_APPROVED) {
+        const dl = document.getElementById("download");
+        const pr = document.getElementById("print");
+        const sh = document.getElementById("share");
+        if (dl) dl.disabled = true;
+        if (pr) pr.disabled = true;
+        if (sh) sh.disabled = true;
       }
     });
-  }
-});
 
-download.addEventListener("click", function() {
-  jQuery("#populate").click();
-  if(jQuery("#ch_name").val().length>0 && jQuery("#ch_date").val().length>2 && jQuery("#ch_amount").val().length>0){
-    var canvas = document.getElementById('cheque_img');
-    let fname=jQuery("select#company").val()+"_"+jQuery("input#ch_name").val();
-    var imgData = canvas.toDataURL("image/png", 1.0);
-    const cfg = readCfgFromInputs();
-    rotate(imgData, cfg.rotate, function(resultBase64) {
-      var pdf = new jsPDF();
-      pdf.addImage(resultBase64, 'png', 78.5, 0);
-      pdf.save( fname.replace(" ","_")+"_cheque.pdf");
+    /* ================= BHD to words =================== */
+    function bhd(amount) {
+      var words = new Array();
+      words[0] = "zero";
+      words[1] = "One";
+      words[2] = "Two";
+      words[3] = "Three";
+      words[4] = "Four";
+      words[5] = "Five";
+      words[6] = "Six";
+      words[7] = "Seven";
+      words[8] = "Eight";
+      words[9] = "Nine";
+      words[10] = "Ten";
+      words[11] = "Eleven";
+      words[12] = "Twelve";
+      words[13] = "Thirteen";
+      words[14] = "Fourteen";
+      words[15] = "Fifteen";
+      words[16] = "Sixteen";
+      words[17] = "Seventeen";
+      words[18] = "Eighteen";
+      words[19] = "Nineteen";
+      words[20] = "Twenty";
+      words[30] = "Thirty";
+      words[40] = "Forty";
+      words[50] = "Fifty";
+      words[60] = "Sixty";
+      words[70] = "Seventy";
+      words[80] = "Eighty";
+      words[90] = "Ninety";
+      words[100] = "One Hundred";
+      words[200] = "Two Hundred";
+      words[300] = "Three Hundred";
+      words[400] = "Four Hundred";
+      words[500] = "Five Hundred";
+      words[600] = "Six Hundred";
+      words[700] = "Seven Hundred";
+      words[800] = "Eight Hundred";
+      words[900] = "Nine Hundred";
+      amount = amount.toString();
+      var atemp = amount.split(".");
+      var number = atemp[0].split(",").join("");
+      var n_length = number.length;
+      var words_string = "";
+      if (n_length <= 11) {
+        var n_array = new Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+        var received_n_array = new Array();
+        for (var i = 0; i < n_length; i++) {
+          received_n_array[i] = number.substr(i, 1);
+        }
+        for (var i = 11 - n_length, j = 0; i < 11; i++, j++) {
+          n_array[i] = received_n_array[j];
+        }
+        for (var i = 0, j = 1; i < 11; i++, j++) {
+          if (i == 0 || i == 3 || i == 6 || i == 9) {
+            if (n_array[i] == 1) {
+              n_array[j] = 10 + parseInt(n_array[j]);
+              n_array[i] = 0;
+            }
+          }
+        }
+        var value = "";
+        for (var i = 0; i < 11; i++) {
+          if (i == 0 || i == 3 || i == 6 || i == 9) {
+            value = n_array[i] * 10;
+          } else if (i == 2 || i == 5 || i == 8) {
+            value = n_array[i] * 100;
+          } else {
+            value = n_array[i];
+          }
+
+          if (value != 0) {
+            words_string += words[value] + " ";
+          }
+          if (i == 1 && value != 0 && n_array[i - 1] > 0) {
+            words_string += "Billion ";
+          } else if (i == 1 && value != 0) {
+            words_string += "Biillion ";
+          }
+          if (
+            i == 4 &&
+            value == 0 &&
+            (n_array[i - 1] > 0 || n_array[i - 2] > 0)
+          ) {
+            words_string += "Million ";
+          } else if (i == 4 && value != 0) {
+            words_string += "Million ";
+          }
+          if (
+            i == 7 &&
+            value == 0 &&
+            (n_array[i - 1] > 0 || n_array[i - 2] > 0)
+          ) {
+            words_string += "Thousand ";
+          } else if (i == 7 && value != 0) {
+            words_string += "Thousand ";
+          }
+        }
+        words_string = words_string.split(" ").join(" ");
+      }
+      return words_string;
+    }
+
+    jQuery("#populate").click(function () {
+      generate_Cheque();
     });
-  }
-}, false);
 
-document.getElementById("print").addEventListener("click", function() {
-  jQuery("#populate").click();
-  if(jQuery("#ch_name").val().length>0 && jQuery("#ch_date").val().length>2 && jQuery("#ch_amount").val().length>0){
-    var canvas = document.getElementById('cheque_img');
-    var imgData = canvas.toDataURL("image/png", 1.0);
-    const cfg = readCfgFromInputs();
-    var pdf = new jsPDF();
-    rotate(imgData, cfg.rotate, function(resultBase64) {
-      pdf.addImage(resultBase64, 'png', 78, 0);
-      printJS(pdf.output('bloburl'));
-    });
-  }
-}, false);
+    /* ================== UPDATED generate_Cheque() ================== */
+    function generate_Cheque() {
+      var line_length = Number(jQuery("#line_length").val());
+      var line_length2 = Number(jQuery("#line_length2").val());
 
-/* Live preview + persist on calibration changes */
-jQuery("#ch_amount,#ch_name,#ch_date,.line_length,.line_length2,\
+      if (
+        jQuery("#ch_name").val().length > 0 &&
+        jQuery("#ch_date").val().length > 2 &&
+        jQuery("#ch_amount").val().length > 0
+      ) {
+        const cfg = readCfgFromInputs();
+        draw_canvas_with_cfg(cfg);
+
+        var c = document.getElementById("cheque_img");
+        var ctx = c.getContext("2d");
+        ctx.fillStyle = "#000";
+
+        // NAME (Payee)
+        let ch_name = jQuery("#ch_name").val().toUpperCase();
+        ctx.font = `${cfg.name_font}px Arial`;
+        fillTextWithTracking(
+          ctx,
+          ch_name,
+          cfg.name_x,
+          cfg.name_y,
+          cfg.name_track
+        );
+
+        // AMOUNT numeric + words
+        let amnt = jQuery("#ch_amount").val();
+        let amnt_arr = amnt.split(".");
+        var ch_amount = "**" + bhd(amnt_arr[0]);
+
+        if (amnt_arr.length > 1) {
+          if (amnt_arr[1].length <= 3) {
+            let fils = bhd(amnt_arr[1]);
+            ch_amount = ch_amount + " And Fils " + fils + " Only**";
+          } else {
+            alert(
+              "you can only add maximum three decimal palces for fills"
+            );
+            return;
+          }
+          ctx.font = `${cfg.num_font}px Arial`;
+          ctx.fillText(
+            "**" + amnt_arr[0] + "/" + amnt_arr[1] + "**",
+            cfg.num_x,
+            cfg.num_y
+          );
+        } else {
+          ch_amount += " Only**";
+          ctx.font = `${cfg.num_font}px Arial`;
+          ctx.fillText(amnt + "/-", cfg.num_x, cfg.num_y);
+        }
+
+        // Amount in words (wrapping with tracking)
+        ctx.font = `${cfg.words_font}px Arial`;
+        let x = cfg.words_x;
+        let y = cfg.words_y;
+        if (ch_amount.length > line_length) {
+          let str_1 = ch_amount.substring(0, line_length);
+          let str_2 = ch_amount.substring(line_length, ch_amount.length);
+          let str_3 = str_2.substring(0, line_length2);
+          let str_4 = str_2.substring(line_length2, str_2.length);
+          fillTextWithTracking(
+            ctx,
+            str_1,
+            x,
+            y,
+            cfg.words_track
+          );
+          fillTextWithTracking(
+            ctx,
+            str_3,
+            30,
+            y + cfg.words_gap,
+            cfg.words_track
+          );
+          fillTextWithTracking(
+            ctx,
+            str_4,
+            30,
+            y + cfg.words_gap * 2,
+            cfg.words_track
+          );
+        } else {
+          fillTextWithTracking(
+            ctx,
+            ch_amount,
+            x,
+            y,
+            cfg.words_track
+          );
+        }
+
+        // DATE digits (adjustable)
+        ctx.font = `${cfg.date_font}px Arial`;
+        let ch_date = jQuery("#ch_date").val();
+        let ch_date_ar_arr = ch_date.split("-"); // [yyyy, mm, dd]
+
+        const baseX = cfg.date_x,
+          baseY = cfg.date_y;
+        // day
+        ctx.fillText(ch_date_ar_arr[2][0], baseX, baseY);
+        ctx.fillText(
+          ch_date_ar_arr[2][1],
+          baseX + cfg.gap_day,
+          baseY
+        );
+        // month
+        const monBase = baseX + cfg.gap_day + cfg.gap_mon;
+        ctx.fillText(ch_date_ar_arr[1][0], monBase, baseY);
+        ctx.fillText(
+          ch_date_ar_arr[1][1],
+          monBase + cfg.gap_mon,
+          baseY
+        );
+        // year
+        const yearBase = monBase + cfg.gap_mon + cfg.gap_year;
+        ctx.fillText(ch_date_ar_arr[0][0], yearBase, baseY);
+        ctx.fillText(
+          ch_date_ar_arr[0][1],
+          yearBase + cfg.gap_year,
+          baseY
+        );
+        ctx.fillText(
+          ch_date_ar_arr[0][2],
+          yearBase + cfg.gap_year * 2,
+          baseY
+        );
+        ctx.fillText(
+          ch_date_ar_arr[0][3],
+          yearBase + cfg.gap_year * 3,
+          baseY
+        );
+
+        // persist latest calibrated values
+        saveCalibration();
+      } else {
+        alert("Please Fill All the Details");
+      }
+    }
+
+    function showTextbox() {
+      var checkbox = document.getElementById("checkbox");
+      var textbox = $(".settings");
+      if (checkbox.checked) {
+        textbox.slideDown();
+      } else {
+        textbox.slideUp();
+      }
+    }
+
+    function rotate(srcBase64, degrees, callback) {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      const image = new Image();
+      image.crossOrigin = "anonymous";
+      image.onload = function () {
+        canvas.width =
+          degrees % 180 === 0 ? image.width : image.height;
+        canvas.height =
+          degrees % 180 === 0 ? image.height : image.width;
+        ctx.translate(canvas.width / 2, canvas.height / 2);
+        ctx.rotate((degrees * Math.PI) / 180);
+        ctx.drawImage(
+          image,
+          image.width / -2,
+          image.height / -2
+        );
+        callback(canvas.toDataURL());
+      };
+      image.src = srcBase64;
+    }
+
+    /* ================== SAVE CHEQUE (send to backend) ================== */
+    async function saveCheque() {
+      // basic validation
+      if (
+        !jQuery("#ch_name").val() ||
+        !jQuery("#ch_date").val() ||
+        !jQuery("#ch_amount").val()
+      ) {
+        alert(
+          "Please fill all the fields (Name, Date, Amount) before saving."
+        );
+        return;
+      }
+
+      // draw cheque so preview image is proper
+      jQuery("#populate").click();
+
+      const name = document.getElementById("ch_name").value;
+      const date = document.getElementById("ch_date").value;
+      const amount = parseFloat(
+        document.getElementById("ch_amount").value
+      );
+      const company = document.getElementById("company").value || "";
+      const bankCode = document.getElementById("bank_select").value;
+      const bankCfg = BANK_TEMPLATES[bankCode] || {};
+      const bankName = bankCfg.label || bankCode;
+
+      const canvas = document.getElementById("cheque_img");
+      let preview = null;
+      try {
+        preview = canvas.toDataURL("image/png", 0.8);
+      } catch (e) {
+        preview = null;
+      }
+
+      // generate simple cheque number so backend requirement is satisfied
+      const chequeNumber =
+        CHEQUE_ID ||
+        `CHQ-${bankCode.toUpperCase()}-${Date.now()}`;
+
+      const amountIntPart = String(amount).split(".")[0] || "0";
+
+      const payload = {
+        bankName, // required
+        bankCode, // extra info
+        accountNumber: "",
+        chequeNumber,
+        date,
+        currency: "BHD",
+        amount: amount,
+        amountWords: bhd(amountIntPart),
+        beneficiaryName: name,
+        hideBeneficiary: false,
+        notes: company ? "Company: " + company : "",
+        previewImage: preview, // backend will ignore if not used
+      };
+
+      try {
+        const url = `${API_BASE}/cheques`;
+        const method = "POST";
+
+        // build headers and attach JWT if present
+        const headers = { "Content-Type": "application/json" };
+        const token = findJwtToken();
+        if (token) {
+          headers["Authorization"] = `Bearer ${token}`;
+          headers["x-auth-token"] = token;
+        }
+
+        const res = await fetch(url, {
+          method,
+          headers,
+          body: JSON.stringify(payload),
+          credentials: "include", // send cookie as well
+        });
+
+        if (!res.ok) {
+          let msg = "Error saving cheque. ";
+          try {
+            const errJson = await res.json();
+            if (errJson && errJson.message) {
+              msg += errJson.message;
+            } else {
+              msg += "Please check backend route.";
+            }
+          } catch (e) {
+            msg += "Please check backend route.";
+          }
+          alert(msg);
+          return;
+        }
+
+        let data = {};
+        try {
+          data = await res.json();
+        } catch (e) {
+          data = {};
+        }
+
+        const savedId = data.id || CHEQUE_ID || data._id || null;
+
+        alert(
+          "Cheque saved and sent for approval.\nYou can approve it from the Approvals menu."
+        );
+
+        // Tell parent React app (optional)
+        if (window.parent && window.parent !== window) {
+          window.parent.postMessage(
+            {
+              type: "CHEQUE_SAVED",
+              chequeId: savedId,
+              status: data.status || "Draft",
+            },
+            "*"
+          );
+        }
+      } catch (err) {
+        console.error(err);
+        alert(
+          "Error connecting to server while saving cheque. Please check that the API is running."
+        );
+      }
+    }
+
+    /* bind save button */
+    document
+      .getElementById("save_cheque")
+      .addEventListener("click", function () {
+        saveCheque();
+      });
+
+    /* ================== SHARE / DOWNLOAD / PRINT (blocked if not approved) ================== */
+    const shareBtn = document.getElementById("share");
+    if (shareBtn) {
+      shareBtn.addEventListener("click", async () => {
+        if (!canPrintOrDownload()) return;
+
+        jQuery("#populate").click();
+        if (
+          jQuery("#ch_name").val().length > 0 &&
+          jQuery("#ch_date").val().length > 2 &&
+          jQuery("#ch_amount").val().length > 0
+        ) {
+          var canvas = document.getElementById("cheque_img");
+          var imgData = canvas.toDataURL("image/png", 1.0);
+          const cfg = readCfgFromInputs();
+          var pdf = new jsPDF();
+          rotate(imgData, cfg.rotate, function (resultBase64) {
+            pdf.addImage(resultBase64, "png", 78.5, 0);
+            let pdf_output = pdf.output("blob");
+            var file = new File([pdf_output], "cheque.pdf", {
+              type: "application/pdf",
+            });
+            var filesArray = [file];
+            var fname =
+              "From: " +
+              jQuery("#company").val() +
+              "\n To: " +
+              jQuery("input#ch_name").val();
+            if (
+              navigator.canShare &&
+              navigator.canShare({ files: filesArray })
+            ) {
+              navigator.share({
+                text: fname,
+                files: filesArray,
+                title: "Cheque",
+                url: "",
+              });
+            }
+          });
+        }
+      });
+    }
+
+    const downloadBtn = document.getElementById("download");
+    if (downloadBtn) {
+      downloadBtn.addEventListener(
+        "click",
+        function () {
+          if (!canPrintOrDownload()) return;
+
+          jQuery("#populate").click();
+          if (
+            jQuery("#ch_name").val().length > 0 &&
+            jQuery("#ch_date").val().length > 2 &&
+            jQuery("#ch_amount").val().length > 0
+          ) {
+            var canvas = document.getElementById("cheque_img");
+            let fname =
+              jQuery("#company").val() +
+              "_" +
+              jQuery("input#ch_name").val();
+            var imgData = canvas.toDataURL("image/png", 1.0);
+            const cfg = readCfgFromInputs();
+            rotate(imgData, cfg.rotate, function (resultBase64) {
+              var pdf = new jsPDF();
+              pdf.addImage(resultBase64, "png", 78.5, 0);
+              pdf.save(fname.replace(" ", "_") + "_cheque.pdf");
+            });
+          }
+        },
+        false
+      );
+    }
+
+    const printBtn = document.getElementById("print");
+    if (printBtn) {
+      printBtn.addEventListener(
+        "click",
+        function () {
+          if (!canPrintOrDownload()) return;
+
+          jQuery("#populate").click();
+          if (
+            jQuery("#ch_name").val().length > 0 &&
+            jQuery("#ch_date").val().length > 2 &&
+            jQuery("#ch_amount").val().length > 0
+          ) {
+            var canvas = document.getElementById("cheque_img");
+            var imgData = canvas.toDataURL("image/png", 1.0);
+            const cfg = readCfgFromInputs();
+            var pdf = new jsPDF();
+            rotate(imgData, cfg.rotate, function (resultBase64) {
+              pdf.addImage(resultBase64, "png", 78, 0);
+              printJS(pdf.output("bloburl"));
+            });
+          }
+        },
+        false
+      );
+    }
+
+    /* Live preview + persist on calibration changes */
+    jQuery(
+      "#ch_amount,#ch_name,#ch_date,.line_length,.line_length2,\
 #cfg_name_x,#cfg_name_y,#cfg_name_font,#cfg_name_track,\
 #cfg_words_x,#cfg_words_y,#cfg_words_gap,#cfg_words_font,#cfg_words_track,\
 #cfg_num_x,#cfg_num_y,#cfg_num_font,\
 #cfg_date_x,#cfg_date_y,#cfg_gap_day,#cfg_gap_mon,#cfg_gap_year,#cfg_date_font,\
 #cfg_scale,#cfg_rotate"
-).on('change input', function(){
-  saveCalibration();
-  if(jQuery("#ch_name").val().length>0 && jQuery("#ch_date").val().length>2 && jQuery("#ch_amount").val().length>0){
-    jQuery("button#populate").click();
-  } else {
-    draw_canvas_with_cfg(readCfgFromInputs());
-  }
-});
-</script>
-
-
- 
-
-<!-- includeHTML loader (same logic as index.html) -->
-<script>
-  function includeHTML() {
-    const elements = document.querySelectorAll('[include-html]');
-    elements.forEach(el => {
-      const file = el.getAttribute('include-html');
-      fetch(file)
-        .then(res => {
-          if (!res.ok) throw new Error("Include failed");
-          return res.text();
-        })
-        .then(html => {
-          el.innerHTML = html;
-        })
-        .catch(() => {
-          el.innerHTML =
-            "<p style='color:red;text-align:center;'>Error loading component: " +
-            file +
-            "</p>";
-        });
+    ).on("change input", function () {
+      saveCalibration();
+      if (
+        jQuery("#ch_name").val().length > 0 &&
+        jQuery("#ch_date").val().length > 2 &&
+        jQuery("#ch_amount").val().length > 0
+      ) {
+        jQuery("button#populate").click();
+      } else {
+        draw_canvas_with_cfg(readCfgFromInputs());
+      }
     });
-  }
-  includeHTML();
-</script>
 
+    /* includeHTML loader (if you add header/footer later) */
+    function includeHTML() {
+      const elements = document.querySelectorAll("[include-html]");
+      elements.forEach((el) => {
+        const file = el.getAttribute("include-html");
+        fetch(file)
+          .then((res) => {
+            if (!res.ok) throw new Error("Include failed");
+            return res.text();
+          })
+          .then((html) => {
+            el.innerHTML = html;
+          })
+          .catch(() => {
+            el.innerHTML =
+              "<p style='color:red;text-align:center;'>Error loading component: " +
+              file +
+              "</p>";
+          });
+      });
+    }
+    includeHTML();
+  </script>
 </body>
 </html>

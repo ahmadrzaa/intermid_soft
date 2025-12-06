@@ -44,7 +44,7 @@ export default function BeneficiariesPage() {
   const [formError, setFormError] = useState("");
   const [saving, setSaving] = useState(false);
 
-  // Load list
+  // ===== LOAD LIST FROM API =====
   const refresh = async () => {
     setLoading(true);
     setLoadError("");
@@ -67,7 +67,7 @@ export default function BeneficiariesPage() {
     refresh();
   }, []);
 
-  // filtered list
+  // ===== FILTERED LIST =====
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();
     const vis = visibilityFilter;
@@ -93,7 +93,7 @@ export default function BeneficiariesPage() {
     });
   }, [rows, search, visibilityFilter]);
 
-  // open create form
+  // ===== FORM HELPERS =====
   const openCreate = () => {
     setEditing(null);
     setForm(defaultForm);
@@ -101,7 +101,6 @@ export default function BeneficiariesPage() {
     setFormOpen(true);
   };
 
-  // open edit form
   const openEdit = (row) => {
     setEditing(row);
     setForm({
@@ -173,17 +172,21 @@ export default function BeneficiariesPage() {
     }
   };
 
+  // ===== UI =====
   return (
     <div className="bene-root">
       {/* HEADER */}
       <div className="bene-header-row">
         <div>
           <div className="bene-kicker">Beneficiaries</div>
-          <h1 className="bene-title">Saved payees & regular suppliers</h1>
+          <h1 className="bene-title">
+            Saved beneficiaries & regular suppliers
+          </h1>
           <p className="bene-subtitle">
-            Maintain a clean list of beneficiaries. Use them on new cheques,
-            hide names for regular suppliers, and keep notes for finance or
-            audit.
+            Add beneficiaries once, re-use them on new cheques, and choose
+            whether their name should appear or stay hidden on the printed
+            cheque (for regular suppliers/customers). Everything stays stored
+            for finance and audit.
           </p>
         </div>
 
@@ -254,7 +257,7 @@ export default function BeneficiariesPage() {
               onClick={() => setVisibilityFilter("hidden")}
             >
               <FiEyeOff className="bene-chip-icon" />
-              <span>Hidden by default</span>
+              <span>Hidden on cheque (regular)</span>
             </button>
           </div>
         </div>
@@ -285,17 +288,22 @@ export default function BeneficiariesPage() {
             <form className="bene-form" onSubmit={handleSubmit} noValidate>
               <div className="bene-form-grid">
                 <div className="bene-field">
-                  <span className="bene-label">Name (required)</span>
+                  <span className="bene-label">Name (optional on cheque)</span>
                   <div className="bene-input-line">
                     <input
                       type="text"
                       value={form.name}
                       onChange={(e) => handleChange("name", e.target.value)}
-                      placeholder="Beneficiary name"
+                      placeholder="Beneficiary / supplier name"
                       required
                     />
                     <FiUser className="bene-input-icon" />
                   </div>
+                  <p className="bene-help">
+                    You can still leave the name empty when preparing a new
+                    cheque – the system will allow optional beneficiary entry as
+                    requested by the client.
+                  </p>
                 </div>
 
                 <div className="bene-field">
@@ -305,7 +313,7 @@ export default function BeneficiariesPage() {
                       type="text"
                       value={form.alias}
                       onChange={(e) => handleChange("alias", e.target.value)}
-                      placeholder="Optional short label"
+                      placeholder="Optional short label used in lists"
                     />
                   </div>
                 </div>
@@ -313,7 +321,9 @@ export default function BeneficiariesPage() {
 
               <div className="bene-form-grid">
                 <div className="bene-field">
-                  <span className="bene-label">Hide name on cheque</span>
+                  <span className="bene-label">
+                    Keep beneficiary name hidden on cheque
+                  </span>
                   <label className="bene-toggle">
                     <input
                       type="checkbox"
@@ -323,8 +333,10 @@ export default function BeneficiariesPage() {
                       }
                     />
                     <span>
-                      If enabled, this beneficiary’s name will be hidden on the
-                      printed cheque by default.
+                      If enabled, this beneficiary&rsquo;s name will be hidden
+                      on the printed cheque by default (recommended for regular
+                      suppliers/customers). The name still stays in the system
+                      for finance and audit.
                     </span>
                   </label>
                 </div>
@@ -337,7 +349,7 @@ export default function BeneficiariesPage() {
                     rows={3}
                     value={form.notes}
                     onChange={(e) => handleChange("notes", e.target.value)}
-                    placeholder="Add any extra details for finance / audit (optional)"
+                    placeholder="Extra details for finance / audit (optional)"
                   />
                 </div>
               </div>
@@ -457,7 +469,7 @@ export default function BeneficiariesPage() {
                             {b.hideByDefault ? (
                               <>
                                 <FiEyeOff className="bene-pill-icon" /> Hidden
-                                by default
+                                on cheque (regular)
                               </>
                             ) : (
                               <>

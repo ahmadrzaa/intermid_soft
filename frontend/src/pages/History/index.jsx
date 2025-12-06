@@ -1,7 +1,8 @@
 // frontend/src/pages/History/index.jsx
 
 import { useEffect, useMemo, useState } from "react";
-import { getCheques } from "../../services/cheques";
+import { useNavigate } from "react-router-dom";
+import { getCheques, deleteCheque } from "../../services/cheques";
 import { useAuth } from "../../AuthContext";
 import "./history.css";
 
@@ -12,20 +13,74 @@ import {
   FiCalendar,
   FiSearch,
   FiFilter,
+  FiEye,
+  FiEdit2,
+  FiTrash2,
 } from "react-icons/fi";
+
+/** Map bank names in DB -> bank code used by cheque templates */
+function getBankCodeFromRow(c) {
+  if (c.bankCode) return c.bankCode;
+
+  const name = (c.bankName || c.bank || "").toLowerCase().trim();
+
+  if (name.includes("national bank of bahrain") || name === "nbb")
+    return "nbb";
+  if (name.includes("ahli united")) return "ahli_united";
+  if (name.includes("alsalam")) return "alsalam";
+  if (name.includes("arab banking")) return "abc";
+  if (name.includes("islamic") && name.includes("bahrain")) return "bisb";
+  if (name.includes("development") && name.includes("bahrain")) return "bdb";
+  if (name.includes("central bank")) return "cbb";
+  if (name.includes("gulf international")) return "gib";
+  if (name.includes("hsbc")) return "hsbc_bh";
+  if (
+    name.includes("bank of bahrain and kuwait") ||
+    name.includes("(bbk)") ||
+    name === "bbk"
+  )
+    return "bbk";
+
+  return "bbk";
+}
+
+function normalizeStatus(value) {
+  return String(value || "").trim().toLowerCase();
+}
+
+function isApprovedLike(status) {
+  const s = normalizeStatus(status);
+  return s === "approved" || s === "printed" || s === "completed";
+}
 
 export default function HistoryPage() {
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const role = user?.role || "Staff";
+  const canDelete = role === "Admin" || role === "Manager";
 
   const [cheques, setCheques] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [deletingId, setDeletingId] = useState(null);
 
   // filters
   const [statusFilter, setStatusFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+
+  // base style for tiny icon buttons in Actions col
+  const iconBtnBase = {
+    border: "none",
+    background: "transparent",
+    cursor: "pointer",
+    padding: 0,
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: 16,
+  };
 
   // load from API
   useEffect(() => {
@@ -91,6 +146,71 @@ export default function HistoryPage() {
     }
   };
 
+  // open cheque in New page with selected mode
+  const openCheque = (cheque, mode) => {
+    if (!cheque) return;
+    const id = cheque.id || cheque._id;
+    if (!id) {
+      alert("This cheque does not have an ID.");
+      return;
+    }
+
+    const approvedParam = isApprovedLike(cheque.status) ? "1" : "0";
+    const bankCode = getBankCodeFromRow(cheque);
+
+    const params = new URLSearchParams();
+    params.set("id", String(id));
+    params.set("bank", bankCode);
+    params.set("approved", approvedParam);
+    params.set("mode", mode); // "view" or "print"
+
+    navigate(`/app/checks/new?${params.toString()}`);
+  };
+
+  const handleViewCheque = (cheque) => openCheque(cheque, "view");
+  const handlePrintCheque = (cheque) => openCheque(cheque, "print");
+
+  const handleEditCheque = (cheque) => {
+    if (!cheque) return;
+    const id = cheque.id || cheque._id;
+    if (!id) {
+      alert("This cheque does not have an ID.");
+      return;
+    }
+
+    const approvedParam = isApprovedLike(cheque.status) ? "1" : "0";
+    const bankCode = getBankCodeFromRow(cheque);
+
+    const params = new URLSearchParams();
+    params.set("id", String(id));
+    params.set("bank", bankCode);
+    params.set("approved", approvedParam);
+    params.set("mode", "edit");
+
+    navigate(`/app/checks/new?${params.toString()}`);
+  };
+
+  const handleDeleteCheque = async (cheque) => {
+    if (!cheque?.id) return;
+    const ok = window.confirm(
+      `Delete cheque "${cheque.chequeNumber || cheque.chequeNo || ""}"? This cannot be undone.`
+    );
+    if (!ok) return;
+
+    setDeletingId(cheque.id);
+    try {
+      await deleteCheque(cheque.id);
+      setCheques((curr) => curr.filter((c) => c.id !== cheque.id));
+    } catch (e) {
+      alert(
+        e?.response?.data?.message ||
+          "Unable to delete cheque right now. Please try again."
+      );
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   // apply filters
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -116,8 +236,21 @@ export default function HistoryPage() {
       }
       if (!dateOk) return false;
 
-      // status filter
-      const rowStatus = String(c.status || "").toLowerCase();
+      // status filter (normalize Pending / Draft)
+      const raw = String(c.status || "").toLowerCase();
+      let rowStatus = raw;
+
+      if (
+        raw === "pending" ||
+        raw === "pendingapproval" ||
+        raw === "pending_approval"
+      ) {
+        rowStatus = "draft"; // group as Pending approval
+      }
+      if (raw === "cancelled") {
+        rowStatus = "stopped"; // UI uses stopped
+      }
+
       if (statusKey !== "all" && statusKey && rowStatus !== statusKey) {
         return false;
       }
@@ -152,7 +285,7 @@ export default function HistoryPage() {
     let totalAmount = 0;
     let printedCount = 0;
     let approvedCount = 0;
-    let draftCount = 0;
+    let draftCount = 0; // Pending approval
     let returnedCount = 0;
 
     filtered.forEach((c) => {
@@ -160,10 +293,20 @@ export default function HistoryPage() {
       if (!isNaN(amt)) totalAmount += amt;
 
       const st = String(c.status || "").toLowerCase();
-      if (st === "printed" || st === "completed") printedCount += 1;
-      else if (st === "approved") approvedCount += 1;
-      else if (st === "draft") draftCount += 1;
-      else if (st === "returned" || st === "rejected") returnedCount += 1;
+      if (st === "printed" || st === "completed") {
+        printedCount += 1;
+      } else if (st === "approved") {
+        approvedCount += 1;
+      } else if (
+        st === "draft" ||
+        st === "pending" ||
+        st === "pendingapproval" ||
+        st === "pending_approval"
+      ) {
+        draftCount += 1;
+      } else if (st === "returned" || st === "rejected") {
+        returnedCount += 1;
+      }
     });
 
     return {
@@ -333,6 +476,30 @@ export default function HistoryPage() {
     win.document.close();
   };
 
+  // helper: display-status (user friendly)
+  function getStatusLabel(rawStatus) {
+    const st = normalizeStatus(rawStatus);
+    if (
+      st === "draft" ||
+      st === "pending" ||
+      st === "pendingapproval" ||
+      st === "pending_approval"
+    ) {
+      return "Pending approval";
+    }
+    if (st === "cancelled" || st === "stopped") {
+      return "Stopped / Cancelled";
+    }
+    return rawStatus || "Draft";
+  }
+
+  function formatDate(raw) {
+    if (!raw) return "";
+    const d = new Date(raw);
+    if (isNaN(d)) return raw;
+    return d.toISOString().slice(0, 10);
+  }
+
   return (
     <div className="history-root">
       {/* HEADER */}
@@ -380,7 +547,7 @@ export default function HistoryPage() {
         </div>
       </div>
 
-      {/* SUMMARY STRIP (over filtered rows) */}
+      {/* SUMMARY STRIP */}
       <section className="history-section">
         <div className="history-summary-grid">
           <div className="history-summary-card">
@@ -409,14 +576,16 @@ export default function HistoryPage() {
           </div>
 
           <div className="history-summary-card">
-            <div className="history-summary-label">Approved (not printed)</div>
+            <div className="history-summary-label">
+              Approved (not printed)
+            </div>
             <div className="history-summary-value">
               {summary.approvedCount}
             </div>
           </div>
 
           <div className="history-summary-card">
-            <div className="history-summary-label">Draft</div>
+            <div className="history-summary-label">Pending approval</div>
             <div className="history-summary-value">
               {summary.draftCount}
             </div>
@@ -463,7 +632,7 @@ export default function HistoryPage() {
               onChange={(e) => setStatusFilter(e.target.value)}
             >
               <option value="all">All statuses</option>
-              <option value="draft">Draft</option>
+              <option value="draft">Pending approval</option>
               <option value="approved">Approved</option>
               <option value="printed">Printed</option>
               <option value="returned">Returned</option>
@@ -516,12 +685,13 @@ export default function HistoryPage() {
                   <th>Status</th>
                   <th>Prepared by</th>
                   <th>Approved by</th>
+                  <th style={{ width: "150px" }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {loading && (
                   <tr>
-                    <td colSpan={9} className="history-loading-cell">
+                    <td colSpan={10} className="history-loading-cell">
                       Loading cheque history…
                     </td>
                   </tr>
@@ -535,9 +705,7 @@ export default function HistoryPage() {
                       c.approvedAt ||
                       c.createdAt ||
                       "";
-                    const d = rawDate ? new Date(rawDate) : null;
-                    const dateStr =
-                      d && !isNaN(d) ? d.toISOString().slice(0, 10) : "";
+                    const dateStr = formatDate(rawDate);
 
                     const chequeNo = c.chequeNumber || c.chequeNo || "—";
                     const beneficiary =
@@ -552,8 +720,6 @@ export default function HistoryPage() {
                             maximumFractionDigits: 3,
                           })
                         : c.amount || "—";
-
-                    const status = c.status || "Draft";
 
                     const preparedBy =
                       c.createdBy?.name ||
@@ -575,9 +741,82 @@ export default function HistoryPage() {
                         <td>{bank}</td>
                         <td>{account}</td>
                         <td>{amt}</td>
-                        <td>{status}</td>
+                        <td>{getStatusLabel(c.status)}</td>
                         <td>{preparedBy}</td>
                         <td>{approvedBy}</td>
+                        <td>
+                          <div
+                            style={{
+                              display: "flex",
+                              gap: 8,
+                              flexWrap: "wrap",
+                              alignItems: "center",
+                              justifyContent: "flex-start",
+                            }}
+                          >
+                            {/* Edit */}
+                            <button
+                              type="button"
+                              style={{
+                                ...iconBtnBase,
+                                color: "#10b981",
+                              }}
+                              onClick={() => handleEditCheque(c)}
+                              title="Edit cheque"
+                            >
+                              <FiEdit2 />
+                            </button>
+
+                            {/* View */}
+                            <button
+                              type="button"
+                              style={{
+                                ...iconBtnBase,
+                                color: "#2563eb",
+                              }}
+                              onClick={() => handleViewCheque(c)}
+                              title="View cheque"
+                            >
+                              <FiEye />
+                            </button>
+
+                            {/* Print */}
+                            <button
+                              type="button"
+                              style={{
+                                ...iconBtnBase,
+                                color: "#0f766e",
+                              }}
+                              onClick={() => handlePrintCheque(c)}
+                              title="Open in print mode"
+                            >
+                              <FiPrinter />
+                            </button>
+
+                            {/* Delete – only for Manager/Admin */}
+                            {canDelete && (
+                              <button
+                                type="button"
+                                style={{
+                                  ...iconBtnBase,
+                                  color:
+                                    deletingId === c.id
+                                      ? "#9ca3af"
+                                      : "#ef4444",
+                                }}
+                                onClick={() => handleDeleteCheque(c)}
+                                disabled={deletingId === c.id}
+                                title={
+                                  deletingId === c.id
+                                    ? "Deleting…"
+                                    : "Delete cheque"
+                                }
+                              >
+                                <FiTrash2 />
+                              </button>
+                            )}
+                          </div>
+                        </td>
                       </tr>
                     );
                   })}

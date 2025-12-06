@@ -47,7 +47,7 @@
 .home-nav {
   position: sticky;
   top: 0;
-  z-index: 60; /* above everything */
+  z-index: 60;
 
   background: linear-gradient(
     120deg,
@@ -70,35 +70,63 @@
   height: 68px;
 }
 
+/* BRAND: CHEQUE SOFTWARE text logo */
+
 .home-brand {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   text-decoration: none;
 }
 
-.home-brand-logo {
-  height: 28px;
-  width: auto;
-  display: block;
-  /* white logo pops on dark header */
-  filter: drop-shadow(0 0 10px rgba(15, 23, 42, 0.9));
-  transition: transform 0.2s ease, filter 0.2s ease;
-}
-
-.home-brand:hover .home-brand-logo {
-  transform: translateY(-1px) scale(1.02);
-  filter: drop-shadow(0 0 14px rgba(46, 184, 139, 0.8));
-}
-
-/* optional tiny label text beside logo if you add it in JSX */
-.home-brand-text {
-  font-size: 10px;
-  letter-spacing: 0.25em;
+.home-brand-mark {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  border: 1px solid #22c55e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: #9ca3af;
+  color: #bbf7d0;
+  font-family: "Orbitron", system-ui, sans-serif;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.7);
+  background: radial-gradient(circle at 30% 0%, #1f2937, #020617 80%);
+}
+
+.home-brand-text-block {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+}
+
+.home-brand-title {
+  font-size: 14px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: #f9fafb;
   font-family: "Orbitron", system-ui, sans-serif;
   white-space: nowrap;
+}
+
+.home-brand-subtitle {
+  margin-top: 2px;
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #9ca3af;
+  font-family: "Space Grotesk", system-ui, sans-serif;
+}
+
+.home-brand:hover .home-brand-mark {
+  border-color: #2eb88b;
+  box-shadow: 0 8px 20px rgba(46, 184, 139, 0.8);
+}
+
+.home-brand:hover .home-brand-title {
+  color: #bbf7d0;
 }
 
 /* center menu */
@@ -106,14 +134,14 @@
 .home-menu {
   display: flex;
   justify-content: center;
-  gap: 28px;
+  gap: 24px;
 }
 
 .home-menu-link {
   border: none;
   background: transparent;
-  font-size: 12px;
-  letter-spacing: 0.16em;
+  font-size: 11px;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   color: #d1d5db;
   cursor: pointer;
@@ -223,7 +251,7 @@
   animation: homeTitleIn 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
 
   position: relative;
-  overflow: hidden; /* for shine animation */
+  overflow: hidden;
 }
 
 .home-title span {
@@ -254,17 +282,16 @@
   margin: 0 0 26px;
   font-size: 15px;
   line-height: 1.7;
-  color: #1f2933; /* dark text for clear readability */
+  color: #1f2933;
   max-width: 520px;
   font-family: "Space Grotesk", system-ui, -apple-system, BlinkMacSystemFont,
     "SF Pro Text", "Segoe UI", sans-serif;
   letter-spacing: 0.01em;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6); /* slight crisp, not blurry */
-  animation: homeSubtitleIn 0.95s ease-out 0.18s both;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
+  animation: homeSubtitleIn 0.95s.ease-out 0.18s both;
 }
 
-/* CTA BUTTON – exact green + hover behaviour */
-/* CTA BUTTON – exact green + hover behaviour */
+/* CTA BUTTON */
 .home-cta {
   border-radius: 5px;
   padding: 14px 40px;
@@ -288,12 +315,9 @@
   -webkit-transition-property: all !important;
   transition-property: all !important;
 
-  /* remove underline on Link */
   text-decoration: none;
 }
 
-
-/* hover = black background, green border + text */
 .home-cta:hover {
   background-color: #020617;
   color: #2eb88b;
@@ -307,21 +331,15 @@
   outline-offset: 3px;
 }
 
-/* bottom note – darker + slightly stronger for “Admin / Manager / Staff” */
 .home-footnote {
   margin-top: 14px;
   font-size: 13px;
-  color: #111827;        /* dark text */
+  color: #111827;
   opacity: 0.9;
   letter-spacing: 0.03em;
 }
 
-.home-footnote strong {
-  color: #0f172a;
-  font-weight: 600;
-}
-
-/* IMAGE – only your original illustration, no extra box */
+/* IMAGE */
 
 .home-visual {
   display: flex;
@@ -416,7 +434,7 @@
   }
 }
 
-/* image intro + gentle float (no rotation) */
+/* image intro + gentle float */
 @keyframes homeImageIntro {
   0% {
     opacity: 0;

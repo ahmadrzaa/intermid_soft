@@ -1,37 +1,56 @@
 // frontend/src/pages/auth/Register.jsx
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../AuthContext";
-import FloatingTools from "../../components/FloatingTools"; // 👈 floating WhatsApp + Agent
+import FloatingTools from "../../components/FloatingTools"; // floating WhatsApp + Agent
 
 import "../Home/home.css";
 import "./auth.css";
 
+const APP_NAV_ITEMS = [
+  { key: "dashboard", label: "Dashboard", to: "/app/dashboard" },
+  { key: "cheques", label: "Cheques", to: "/app/checks" },
+  { key: "approvals", label: "Approvals", to: "/app/approvals" },
+  { key: "history", label: "History", to: "/app/history" },
+  { key: "settings", label: "Settings", to: "/app/settings" },
+];
+
 function MarketingHeader() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const isAuthed = !!user;
+
+  const handleAppNavClick = (to) => {
+    if (!isAuthed) {
+      navigate("/login");
+      return;
+    }
+    navigate(to);
+  };
+
   return (
     <header className="home-nav">
       <div className="home-container home-nav-inner">
+        {/* CHEQUE SOFTWARE text logo */}
         <Link to="/" className="home-brand">
-          <img
-            src="/intermid-01.svg"
-            alt="INTERMID"
-            className="home-brand-logo"
-          />
+          <div className="home-brand-mark">CS</div>
+          <div className="home-brand-text-block">
+            <div className="home-brand-title">CHEQUE SOFTWARE</div>
+            <div className="home-brand-subtitle">Cloud cheque printing</div>
+          </div>
         </Link>
 
         <nav className="home-menu">
-          <button type="button" className="home-menu-link">
-            Features
-          </button>
-          <button type="button" className="home-menu-link">
-            Approval Flow
-          </button>
-          <button type="button" className="home-menu-link">
-            Check Layouts
-          </button>
-          <button type="button" className="home-menu-link">
-            Pricing
-          </button>
+          {APP_NAV_ITEMS.map((item) => (
+            <button
+              key={item.key}
+              type="button"
+              className="home-menu-link"
+              onClick={() => handleAppNavClick(item.to)}
+            >
+              {item.label}
+            </button>
+          ))}
         </nav>
 
         <div className="home-nav-right">
@@ -242,10 +261,10 @@ export default function Register() {
       </main>
 
       <footer className="auth-footer">
-        © {new Date().getFullYear()} INTERMID Cheque Software
+        © {new Date().getFullYear()} Cheque Software
       </footer>
 
-      {/* 👇 floating WhatsApp + AI Agent visible on register */}
+      {/* floating WhatsApp + AI Agent visible on register */}
       <FloatingTools />
     </div>
   );

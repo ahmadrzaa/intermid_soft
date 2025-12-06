@@ -1,37 +1,59 @@
 // frontend/src/pages/Home/index.jsx
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import "./home.css";
-import FloatingTools from "../../components/FloatingTools"; // 👈 use existing dock
+import FloatingTools from "../../components/FloatingTools";
+import { useAuth } from "../../AuthContext";
+
+const APP_NAV_ITEMS = [
+  { key: "dashboard", label: "Dashboard", to: "/app/dashboard" },
+  { key: "cheques", label: "Cheques", to: "/app/checks" },
+  { key: "approvals", label: "Approvals", to: "/app/approvals" },
+  { key: "history", label: "History", to: "/app/history" },
+  { key: "settings", label: "Settings", to: "/app/settings" },
+];
 
 export default function Home() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const isAuthed = !!user;
+
+  const handleAppNavClick = (to) => {
+    // if not logged in, always go to login
+    if (!isAuthed) {
+      navigate("/login");
+      return;
+    }
+    navigate(to);
+  };
+
   return (
     <div className="home-root">
-      {/* TOP NAVBAR – shared with login/register */}
+      {/* TOP NAVBAR – branding + login */}
       <header className="home-nav">
         <div className="home-container home-nav-inner">
-          {/* Logo goes back to home */}
+          {/* Brand – CHEQUE SOFTWARE text logo */}
           <Link to="/" className="home-brand">
-            <img
-              src="/intermid-01.svg"
-              alt="INTERMID"
-              className="home-brand-logo"
-            />
+            <div className="home-brand-mark">CS</div>
+            <div className="home-brand-text-block">
+              <div className="home-brand-title">CHEQUE SOFTWARE</div>
+              <div className="home-brand-subtitle">
+                Cloud cheque printing
+              </div>
+            </div>
           </Link>
 
-          {/* Center menu (static for now) */}
+          {/* Center menu – app sections (go to login if not signed in) */}
           <nav className="home-menu">
-            <button type="button" className="home-menu-link">
-              FEATURES
-            </button>
-            <button type="button" className="home-menu-link">
-              APPROVAL FLOW
-            </button>
-            <button type="button" className="home-menu-link">
-              CHECK LAYOUTS
-            </button>
-            <button type="button" className="home-menu-link">
-              PRICING
-            </button>
+            {APP_NAV_ITEMS.map((item) => (
+              <button
+                key={item.key}
+                type="button"
+                className="home-menu-link"
+                onClick={() => handleAppNavClick(item.to)}
+              >
+                {item.label}
+              </button>
+            ))}
           </nav>
 
           {/* Right side: LOGIN link */}
@@ -57,7 +79,7 @@ export default function Home() {
               history from any device, using any bank layout or printer.
             </p>
 
-            {/* GET STARTED goes to login */}
+            {/* GET STARTED → login */}
             <Link to="/login" className="home-cta">
               Get Started
             </Link>
@@ -78,7 +100,7 @@ export default function Home() {
         </div>
       </main>
 
-      {/* 👇 FLOATING WHATSAPP + AI AGENT ON HOME */}
+      {/* Floating WhatsApp + AI agent on home */}
       <FloatingTools />
     </div>
   );

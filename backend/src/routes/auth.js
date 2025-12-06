@@ -43,19 +43,31 @@ function toSafeUser(u) {
 }
 
 // ---------- AUTO-ADMIN SEED (runs on startup) ----------
+// NOTE: I changed this so that EVEN IF .env is empty,
+// it will still create a default admin:
+//   email:    digital@intermid.net
+//   password: Admin#@1234
 (function seedAutoAdmin() {
   try {
-    const emailRaw = process.env.AUTO_ADMIN_EMAIL || "";
-    const password = process.env.AUTO_ADMIN_PASSWORD || "";
-    if (!emailRaw || !password) return; // nothing to seed
+    // if .env is set, use that; otherwise fall back to defaults
+    const emailRaw =
+      process.env.AUTO_ADMIN_EMAIL || "digital@intermid.net";
+    const password =
+      process.env.AUTO_ADMIN_PASSWORD || "Admin#@1234";
+
+    // if somehow both are empty, do nothing
+    if (!emailRaw || !password) return;
 
     const email = String(emailRaw).trim().toLowerCase();
-    const name = (process.env.AUTO_ADMIN_NAME || "Auto Admin").trim();
+    const name = (process.env.AUTO_ADMIN_NAME || "Admin User").trim();
     const role = (process.env.AUTO_ADMIN_ROLE || "Admin").trim();
 
     const users = readUsersSafe();
     const exists = users.find((u) => u.email === email);
-    if (exists) return; // already there
+    if (exists) {
+      console.log("Auto-admin already exists:", email);
+      return;
+    }
 
     const passwordHash = bcrypt.hashSync(password, 10);
     const user = {
@@ -138,12 +150,15 @@ r.post("/login", async (req, res) => {
     const cleanEmail = String(email).trim().toLowerCase();
     const users = readUsersSafe();
     const user = users.find((u) => u.email === cleanEmail);
-    if (!user) return res.status(401).json({ message: "Invalid credentials" });
+
+    if (!user) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
 
     const ok = await bcrypt.compare(password, user.passwordHash || "");
-    if (!ok) return res.status(401).json({ message: "Invalid credentials" });
-
-    // No role enforcement here
+    if (!ok) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
 
     const token = signToken({
       id: user.id,

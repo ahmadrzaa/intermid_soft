@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getCheques } from "../../services/cheques";
+import { getCheques, deleteCheque } from "../../services/cheques";
 import { useAuth } from "../../AuthContext";
 import "./checks.css";
 
@@ -11,7 +11,79 @@ import {
   FiRefreshCw,
   FiSearch,
   FiFilter,
+  FiEye,
+  FiEdit2,
+  FiPrinter,
+  FiTrash2,
 } from "react-icons/fi";
+
+/** Map bank names in DB -> bank code used by cheque_bbk.html (10 active banks) */
+function getBankCodeFromRow(c) {
+  if (c.bankCode) return c.bankCode;
+
+  const name = (c.bankName || c.bank || "").toLowerCase().trim();
+
+  // NATIONAL BANK OF BAHRAIN
+  if (name.includes("national bank of bahrain") || name === "nbb")
+    return "nbb";
+
+  // AHLI UNITED
+  if (name.includes("ahli united")) return "ahli_united";
+
+  // ALSALAM
+  if (name.includes("alsalam")) return "alsalam";
+
+  // ARAB BANKING CORPORATION
+  if (name.includes("arab banking")) return "abc";
+
+  // BAHRAIN ISLAMIC BANK
+  if (name.includes("islamic") && name.includes("bahrain")) return "bisb";
+
+  // BAHRAIN DEVELOPMENT BANK
+  if (name.includes("development") && name.includes("bahrain")) return "bdb";
+
+  // CENTRAL BANK OF BAHRAIN
+  if (name.includes("central bank")) return "cbb";
+
+  // GULF INTERNATIONAL BANK
+  if (name.includes("gulf international")) return "gib";
+
+  // HSBC BAHRAIN
+  if (name.includes("hsbc")) return "hsbc_bh";
+
+  // BANK OF BAHRAIN AND KUWAIT (default)
+  if (
+    name.includes("bank of bahrain and kuwait") ||
+    name.includes("(bbk)") ||
+    name === "bbk"
+  )
+    return "bbk";
+
+  // default → bbk
+  return "bbk";
+}
+
+function normalizeStatus(value) {
+  // TRIM so "Approved " still becomes "approved"
+  return String(value || "").trim().toLowerCase();
+}
+
+function isApprovedLike(status) {
+  const s = normalizeStatus(status);
+  return s === "approved" || s === "printed" || s === "completed";
+}
+
+// shared style for icon-only action buttons
+const iconBtnStyle = {
+  border: "none",
+  background: "transparent",
+  cursor: "pointer",
+  fontSize: 16,
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  padding: 0,
+};
 
 export default function ChequesPage() {
   const { user } = useAuth();
@@ -95,10 +167,30 @@ export default function ChequesPage() {
     const statusKey = statusFilter.toLowerCase();
 
     return cheques.filter((c) => {
-      const rowStatus = String(c.status || "").toLowerCase();
+      const rowStatus = normalizeStatus(c.status);
 
-      if (statusKey !== "all" && statusKey && rowStatus !== statusKey) {
-        return false;
+      // status filter with small logic:
+      if (statusKey !== "all" && statusKey) {
+        if (statusKey === "draft") {
+          // treat Draft + Pending + PendingApproval together
+          const isDraftLike = [
+            "draft",
+            "pending",
+            "pending_approval",
+            "pendingapproval",
+          ].includes(rowStatus);
+          if (!isDraftLike) return false;
+        } else if (statusKey === "stopped") {
+          // Stopped / Cancelled group
+          const isStoppedLike =
+            rowStatus === "stopped" ||
+            rowStatus === "cancelled" ||
+            rowStatus.includes("stopped") ||
+            rowStatus.includes("cancelled");
+          if (!isStoppedLike) return false;
+        } else {
+          if (rowStatus !== statusKey) return false;
+        }
       }
 
       if (!term) return true;
@@ -124,6 +216,98 @@ export default function ChequesPage() {
 
   const totalCount = cheques.length;
   const filteredCount = filtered.length;
+
+  /** VIEW only (read-only) */
+  const handleViewCheque = (cheque) => {
+    if (!cheque) return;
+    const id = cheque.id || cheque._id;
+    if (!id) {
+      alert("This cheque does not have an ID.");
+      return;
+    }
+
+    const approvedParam = isApprovedLike(cheque.status) ? "1" : "0";
+    const bankCode = getBankCodeFromRow(cheque);
+
+    const params = new URLSearchParams();
+    params.set("id", String(id));
+    params.set("bank", bankCode);
+    params.set("approved", approvedParam);
+    params.set("mode", "view");
+
+    navigate(`/app/checks/new?${params.toString()}`);
+  };
+
+  /** PRINT mode */
+  const handlePrintCheque = (cheque) => {
+    if (!cheque) return;
+    const id = cheque.id || cheque._id;
+    if (!id) {
+      alert("This cheque does not have an ID.");
+      return;
+    }
+
+    const approvedParam = isApprovedLike(cheque.status) ? "1" : "0";
+    const bankCode = getBankCodeFromRow(cheque);
+
+    const params = new URLSearchParams();
+    params.set("id", String(id));
+    params.set("bank", bankCode);
+    params.set("approved", approvedParam);
+    params.set("mode", "print");
+
+    navigate(`/app/checks/new?${params.toString()}`);
+  };
+
+  /** EDIT mode */
+  const handleEditCheque = (cheque) => {
+    if (!cheque) return;
+    const id = cheque.id || cheque._id;
+    if (!id) {
+      alert("This cheque does not have an ID.");
+      return;
+    }
+
+    const approvedParam = isApprovedLike(cheque.status) ? "1" : "0";
+    const bankCode = getBankCodeFromRow(cheque);
+
+    const params = new URLSearchParams();
+    params.set("id", String(id));
+    params.set("bank", bankCode);
+    params.set("approved", approvedParam);
+    params.set("mode", "edit");
+
+    navigate(`/app/checks/new?${params.toString()}`);
+  };
+
+  /** DELETE cheque */
+  const handleDeleteCheque = async (cheque) => {
+    if (!cheque) return;
+    const id = cheque.id || cheque._id;
+    const chequeNo = cheque.chequeNumber || cheque.chequeNo || id;
+    if (!id) {
+      alert("This cheque does not have an ID.");
+      return;
+    }
+
+    const ok = window.confirm(
+      `Delete cheque "${chequeNo}"? This cannot be undone.`
+    );
+    if (!ok) return;
+
+    try {
+      await deleteCheque(id);
+      // remove from local list
+      setCheques((prev) =>
+        prev.filter((row) => (row.id || row._id) !== id)
+      );
+    } catch (e) {
+      alert(
+        e?.response?.data?.message ||
+          "Unable to delete cheque right now."
+      );
+    }
+  };
 
   return (
     <div className="checks-root">
@@ -170,7 +354,7 @@ export default function ChequesPage() {
               onChange={(e) => setStatusFilter(e.target.value)}
             >
               <option value="all">All statuses</option>
-              <option value="draft">Draft</option>
+              <option value="draft">Draft / Pending approval</option>
               <option value="approved">Approved</option>
               <option value="printed">Printed</option>
               <option value="returned">Returned</option>
@@ -225,12 +409,16 @@ export default function ChequesPage() {
                   <th>Amount</th>
                   <th>Status</th>
                   <th>Prepared by</th>
+                  {/* wider column so icons stay on one line */}
+                  <th style={{ width: "160px", minWidth: "160px" }}>
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {loading && (
                   <tr>
-                    <td colSpan={8} className="checks-loading-cell">
+                    <td colSpan={9} className="checks-loading-cell">
                       Loading cheques…
                     </td>
                   </tr>
@@ -257,7 +445,25 @@ export default function ChequesPage() {
                           })
                         : c.amount || "—";
 
-                    const status = c.status || "Draft";
+                    const rawStatus = c.status || "Draft";
+                    const statusNorm = normalizeStatus(rawStatus);
+                    let friendlyStatus = rawStatus;
+
+                    if (
+                      [
+                        "draft",
+                        "pending",
+                        "pending_approval",
+                        "pendingapproval",
+                      ].includes(statusNorm)
+                    ) {
+                      friendlyStatus = "Pending approval";
+                    } else if (
+                      ["stopped", "cancelled"].includes(statusNorm)
+                    ) {
+                      friendlyStatus = "Stopped / Cancelled";
+                    }
+
                     const preparedBy =
                       c.createdBy?.name ||
                       c.createdBy?.email ||
@@ -265,15 +471,65 @@ export default function ChequesPage() {
                       "—";
 
                     return (
-                      <tr key={c.id}>
+                      <tr key={c.id || c._id || chequeNo}>
                         <td>{dateStr}</td>
                         <td>{chequeNo}</td>
                         <td>{beneficiary}</td>
                         <td>{bank}</td>
                         <td>{account}</td>
                         <td>{amt}</td>
-                        <td>{status}</td>
+                        <td>{friendlyStatus}</td>
                         <td>{preparedBy}</td>
+                        <td>
+                          <div
+                            style={{
+                              display: "flex",
+                              gap: 8,
+                              flexWrap: "nowrap",
+                              justifyContent: "flex-start",
+                            }}
+                          >
+                            {/* Edit */}
+                            <button
+                              type="button"
+                              onClick={() => handleEditCheque(c)}
+                              style={{ ...iconBtnStyle, color: "#10b981" }}
+                              title="Edit cheque"
+                            >
+                              <FiEdit2 />
+                            </button>
+
+                            {/* View */}
+                            <button
+                              type="button"
+                              onClick={() => handleViewCheque(c)}
+                              style={{ ...iconBtnStyle, color: "#2563eb" }}
+                              title="View cheque"
+                            >
+                              <FiEye />
+                            </button>
+
+                            {/* Print */}
+                            <button
+                              type="button"
+                              onClick={() => handlePrintCheque(c)}
+                              style={{ ...iconBtnStyle, color: "#0f766e" }}
+                              title="Print cheque"
+                            >
+                              <FiPrinter />
+                            </button>
+
+                            {/* Delete */}
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteCheque(c)}
+                              style={{ ...iconBtnStyle, color: "#dc2626" }}
+                              title="Delete cheque"
+                            >
+                              <FiTrash2 />
+                            </button>
+                          </div>
+                        </td>
                       </tr>
                     );
                   })}

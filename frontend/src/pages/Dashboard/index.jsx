@@ -18,6 +18,43 @@ import {
   FiUsers,
 } from "react-icons/fi";
 
+/* ---------- helpers (same logic as Cheques list) ---------- */
+
+function normalizeStatus(value) {
+  return String(value || "").trim().toLowerCase();
+}
+
+function isApprovedLike(status) {
+  const s = normalizeStatus(status);
+  return s === "approved" || s === "printed" || s === "completed";
+}
+
+/** Map bank names in dashboard recent rows -> bank code used by cheque templates */
+function getBankCodeFromRow(row) {
+  if (row.bankCode) return row.bankCode;
+
+  const name = (row.bankName || row.bank || "").toLowerCase().trim();
+
+  if (name.includes("national bank of bahrain") || name === "nbb") return "nbb";
+  if (name.includes("ahli united")) return "ahli_united";
+  if (name.includes("alsalam")) return "alsalam";
+  if (name.includes("arab banking")) return "abc";
+  if (name.includes("islamic") && name.includes("bahrain")) return "bisb";
+  if (name.includes("development") && name.includes("bahrain")) return "bdb";
+  if (name.includes("central bank")) return "cbb";
+  if (name.includes("gulf international")) return "gib";
+  if (name.includes("hsbc")) return "hsbc_bh";
+
+  if (
+    name.includes("bank of bahrain and kuwait") ||
+    name.includes("(bbk)") ||
+    name === "bbk"
+  )
+    return "bbk";
+
+  return "bbk";
+}
+
 export default function Dashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -58,6 +95,7 @@ export default function Dashboard() {
   const s = summary || {};
   const status = s.status || s.byStatus || {};
 
+  /* ---------- TOP INFO CARDS (no duplicate statuses) ---------- */
   const infoCards = [
     {
       key: "cheques",
@@ -67,7 +105,7 @@ export default function Dashboard() {
       tone: "blue",
     },
     {
-      key: "pending",
+      key: "pendingApproval",
       label: "Pending approval",
       value: status.pendingApproval ?? 0,
       icon: FiCheckSquare,
@@ -89,6 +127,7 @@ export default function Dashboard() {
     },
   ];
 
+  /* ---------- STATUS STRIP (Pending removed – shown only above) ---------- */
   const statusCards = [
     {
       key: "draft",
@@ -96,13 +135,6 @@ export default function Dashboard() {
       value: status.draft ?? status.upcoming ?? 0,
       icon: FiClock,
       tone: "blue",
-    },
-    {
-      key: "pending",
-      label: "Pending approval",
-      value: status.pendingApproval ?? 0,
-      icon: FiCheckSquare,
-      tone: "amber",
     },
     {
       key: "approved",
@@ -136,19 +168,37 @@ export default function Dashboard() {
 
   const recent = s.recent || [];
 
+  /* ---------- Open cheque from dashboard for View / Print ---------- */
+  const handleViewPrintCheque = (row) => {
+    if (!row) return;
+    const id = row.id || row._id;
+    if (!id) {
+      alert("This cheque does not have an ID.");
+      return;
+    }
+
+    const approvedParam = isApprovedLike(row.status) ? "1" : "0";
+    const bankCode = getBankCodeFromRow(row);
+
+    const params = new URLSearchParams();
+    params.set("id", String(id));
+    params.set("bank", bankCode);
+    params.set("approved", approvedParam);
+    params.set("mode", "view");
+
+    navigate(`/app/checks/new?${params.toString()}`);
+  };
+
   return (
     <div className="dash-root">
       {/* HEADER + ACTIONS */}
       <div className="dash-header-row">
         <div>
-          <div className="dash-kicker">Dashboard</div>
           <h1 className="dash-title">
             Welcome back, {user?.name || "User"}
           </h1>
           <p className="dash-subtitle">
-            {canApprove
-              ? "Review pending approvals and monitor all cheque activity for your company."
-              : "Prepare cheques and monitor status. Approval actions are handled by your Manager/Admin."}
+            Monitor cheque totals, approvals and printing activity in one place.
           </p>
         </div>
 
@@ -270,6 +320,7 @@ export default function Dashboard() {
                     <th>Bank</th>
                     <th>Amount</th>
                     <th>Status</th>
+                    <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -281,6 +332,26 @@ export default function Dashboard() {
                       <td>{row.bank}</td>
                       <td>{row.amount}</td>
                       <td>{row.status}</td>
+                      <td>
+                        <button
+                          type="button"
+                          onClick={() => handleViewPrintCheque(row)}
+                          style={{
+                            border: "none",
+                            background: "transparent",
+                            color: "#2563eb",
+                            cursor: "pointer",
+                            fontSize: 12,
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 4,
+                            padding: 0,
+                          }}
+                        >
+                          <FiPrinter style={{ fontSize: 14 }} />
+                          <span>Print</span>
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>

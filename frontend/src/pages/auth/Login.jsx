@@ -1,42 +1,62 @@
 // frontend/src/pages/auth/Login.jsx
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../AuthContext";
-import FloatingTools from "../../components/FloatingTools"; // 👈 floating WhatsApp + Agent
+import FloatingTools from "../../components/FloatingTools"; // floating WhatsApp + Agent
 
 // reuse same header / fonts as Home
 import "../Home/home.css";
 import "./auth.css";
 
+const APP_NAV_ITEMS = [
+  { key: "dashboard", label: "Dashboard", to: "/app/dashboard" },
+  { key: "cheques", label: "Cheques", to: "/app/checks" },
+  { key: "approvals", label: "Approvals", to: "/app/approvals" },
+  { key: "history", label: "History", to: "/app/history" },
+  { key: "settings", label: "Settings", to: "/app/settings" },
+];
+
 function MarketingHeader() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const isAuthed = !!user;
+
+  const handleAppNavClick = (to) => {
+    if (!isAuthed) {
+      navigate("/login");
+      return;
+    }
+    navigate(to);
+  };
+
   return (
     <header className="home-nav">
       <div className="home-container home-nav-inner">
+        {/* CHEQUE SOFTWARE text logo */}
         <Link to="/" className="home-brand">
-          <img
-            src="/intermid-01.svg"
-            alt="INTERMID"
-            className="home-brand-logo"
-          />
+          <div className="home-brand-mark">CS</div>
+          <div className="home-brand-text-block">
+            <div className="home-brand-title">CHEQUE SOFTWARE</div>
+            <div className="home-brand-subtitle">Cloud cheque printing</div>
+          </div>
         </Link>
 
+        {/* App nav items (if not logged in they just keep user on auth) */}
         <nav className="home-menu">
-          <button type="button" className="home-menu-link">
-            Features
-          </button>
-          <button type="button" className="home-menu-link">
-            Approval Flow
-          </button>
-          <button type="button" className="home-menu-link">
-            Check Layouts
-          </button>
-          <button type="button" className="home-menu-link">
-            Pricing
-          </button>
+          {APP_NAV_ITEMS.map((item) => (
+            <button
+              key={item.key}
+              type="button"
+              className="home-menu-link"
+              onClick={() => handleAppNavClick(item.to)}
+            >
+              {item.label}
+            </button>
+          ))}
         </nav>
 
         <div className="home-nav-right">
-          {/* we are already on login, but keep link for consistency */}
+          {/* already on login but nice to keep link */}
           <Link to="/login" className="home-login-link">
             Login
           </Link>
@@ -56,7 +76,7 @@ export default function Login() {
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
 
-  // NEW: role switch – Admin / Manager / Staff
+  // role switch – Admin / Manager / Staff
   const [activeRole, setActiveRole] = useState("Admin");
 
   async function onSubmit(e) {
@@ -65,7 +85,6 @@ export default function Login() {
     setBusy(true);
 
     try {
-      // send role along as hint (backend can use or ignore)
       await login({
         email: email.trim().toLowerCase(),
         password,
@@ -73,7 +92,7 @@ export default function Login() {
         role: activeRole,
       });
 
-      // same behaviour as your old login: go to dashboard after success
+      // go to dashboard after success
       window.location.href = "/app/dashboard";
     } catch (ex) {
       setErr(ex?.response?.data?.message || "Login failed");
@@ -90,7 +109,7 @@ export default function Login() {
         <div className="auth-card">
           <p className="auth-heading">Log in to start printing cheques</p>
 
-          {/* NEW: role switch pills */}
+          {/* role switch pills */}
           <div className="auth-role-switch" role="tablist">
             {["Admin", "Manager", "Staff"].map((role) => (
               <button
@@ -188,10 +207,10 @@ export default function Login() {
       </main>
 
       <footer className="auth-footer">
-        © {new Date().getFullYear()} INTERMID Cheque Software
+        © {new Date().getFullYear()} Cheque Software
       </footer>
 
-      {/* 👇 floating WhatsApp + AI Agent visible on login */}
+      {/* floating WhatsApp + AI Agent visible on login */}
       <FloatingTools />
     </div>
   );

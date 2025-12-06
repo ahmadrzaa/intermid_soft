@@ -1,4 +1,8 @@
 // backend/src/routes/beneficiaries.js
+// Simple JSON-based Beneficiaries master list
+// Matches client spec: add/edit/delete beneficiaries + flag to hide name
+// on printed cheque (for regular suppliers/customers).
+
 import { Router } from "express";
 import fs from "fs";
 import path from "path";
@@ -51,7 +55,8 @@ r.get("/", requireAuth, (req, res) => {
  * Body: { name, alias?, hideByDefault?, notes? }
  */
 r.post("/", requireAuth, (req, res) => {
-  const { name, alias = "", hideByDefault = false, notes = "" } = req.body || {};
+  const { name, alias = "", hideByDefault = false, notes = "" } =
+    req.body || {};
   if (!name || !name.toString().trim()) {
     return res.status(400).json({ message: "Name is required" });
   }
@@ -74,7 +79,7 @@ r.post("/", requireAuth, (req, res) => {
     id,
     name: normalizedName,
     alias: alias ? alias.toString().trim() : "",
-    hideByDefault: !!hideByDefault,
+    hideByDefault: !!hideByDefault, // when true → default “keep name hidden on cheque”
     notes: notes ? notes.toString().trim() : "",
     createdAt: now,
     updatedAt: now,
