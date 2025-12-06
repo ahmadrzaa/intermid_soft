@@ -1,3 +1,6 @@
+Here’s the **full updated `frontend/public/cheque_bbk.html`** with the fixed `API_BASE` logic (works for localhost + Render backend):
+
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -718,14 +721,30 @@
       URL_PARAMS.get("approved") === "1" ||
       URL_PARAMS.get("approved") === "true";
 
-    // Backend base – comes from React via ?apiBase=...
+    // Backend base – prefer ?apiBase=... from React, otherwise pick by origin
     const API_BASE_FROM_QUERY = URL_PARAMS.get("apiBase");
-    const API_BASE =
-      API_BASE_FROM_QUERY && API_BASE_FROM_QUERY.trim() !== ""
-        ? API_BASE_FROM_QUERY
-        : (window.location.origin.includes("localhost:5173")
-            ? "http://localhost:3001/api"
-            : "/api");
+    const API_BASE = (function () {
+      if (API_BASE_FROM_QUERY && API_BASE_FROM_QUERY.trim() !== "") {
+        return API_BASE_FROM_QUERY.trim();
+      }
+
+      const origin = window.location.origin || "";
+
+      // Local dev: Vite frontend on 5173, backend on 3001
+      if (origin.includes("localhost:5173")) {
+        return "http://localhost:3001/api";
+      }
+
+      // Render production: frontend + backend are different domains
+      if (origin.includes("intermid-frontend.onrender.com")) {
+        return "https://intermid-backend.onrender.com/api";
+      }
+
+      // Fallback: assume same-origin reverse proxy
+      return origin.replace(/\/+$/, "") + "/api";
+    })();
+
+    console.log("Cheque API_BASE =", API_BASE);
 
     /* ======== FIND JWT TOKEN (for auth) ========= */
     function findJwtToken() {
@@ -1689,3 +1708,4 @@
   </script>
 </body>
 </html>
+```
