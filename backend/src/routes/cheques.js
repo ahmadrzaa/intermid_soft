@@ -1,121 +1,139 @@
-.// backend/src/routes/cheques.js
+// backend/src/routes/cheques.js
+
 import { Router } from "express";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import { requireAuth } from "../middleware/auth.js"; // <- token required
+import { requireAuth } from "../middleware/auth.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const r = Router();
 
-// simple JSON file store (you can swap to Mongo later without touching server.js)
+// Simple JSON file store (can swap to Mongo later)
 const DB = path.join(__dirname, "..", "data", "cheques.json");
 fs.mkdirSync(path.dirname(DB), { recursive: true });
-if (!fs.existsSync(DB)) fs.writeFileSync(DB, "[]", "utf8");
+if (!fs.existsSync(DB)) {
+  fs.writeFileSync(DB, "[]", "utf8");
+}
 
-const read = () => JSON.parse(fs.readFileSync(DB, "utf8"));
-const write = (arr) => fs.writeFileSync(DB, JSON.stringify(arr, null, 2));
+// ---- helpers ----
+function read() {
+  try {
+    const text = fs.readFileSync(DB, "utf8");
+    return text ? JSON.parse(text) : [];
+  } catch (err) {
+    console.error("Failed reading cheques DB:", err);
+    return [];
+  }
+}
 
-/**
- * Helper: normalize status to lowercase
- */
+function write(arr) {
+  try {
+    fs.writeFileSync(DB, JSON.stringify(arr, null, 2));
+  } catch (err) {
+    console.error("Failed writing cheques DB:", err);
+  }
+}
+
 function normStatus(value) {
-  return String(value || "").toLowerCase();
+  return String(value || "").trim().toLowerCase();
 }
 
 /**
- * List cheques
+ * GET /api/cheques
  * Optional query:
- *   - ?status=pending        -> Draft + Pending
- *   - ?status=pendingApproval / pending_approval -> Draft + Pending
- *   - ?status=draft,approved -> multiple statuses
+ *   ?status=pending         -> Draft + Pending
+ *   ?status=pendingApproval -> Draft + Pending
+ *   ?status=draft,approved  -> custom list
  */
 r.get("/", requireAuth, (req, res) => {
   const all = read();
-  const { status } = req.query;
+  const status = req.query.status;
 
-  // no filter – return everything
   if (!status) {
     return res.json(all);
   }
 
-  // allow comma-separated statuses
   const raw = String(status).toLowerCase();
   const wanted = raw
     .split(",")
     .map((s) => s.trim())
     .filter(Boolean);
 
-  const wantsPendingAgg = wanted.some(
-    (s) =>
+  const wantsPendingAgg = wanted.some((s) => {
+    return (
       s === "pending" ||
       s === "pendingapproval" ||
       s === "pending_approval"
-  );
+    );
+  });
 
   const rows = all.filter((c) => {
     const st = normStatus(c.status);
 
-    // pending / pendingApproval aggregator:
+    // pending aggregator
     if (wantsPendingAgg && (st === "pending" || st === "draft")) {
       return true;
     }
 
-    // direct match (approved, printed, cancelled, etc.)
-    return wanted.includes(st);
+    // direct match
+    return wanted.indexOf(st) !== -1;
   });
 
   res.json(rows);
 });
 
-/** Create cheque (Staff/Manager/Admin) */
+/**
+ * POST /api/cheques
+ * Create cheque – initial status "Pending" (Pending approval)
+ */
 r.post("/", requireAuth, (req, res) => {
-  const {
-    bankName = "",
-    bankCode = "",
-    accountNumber = "",
-    chequeNumber = "",
-    date = "",
-    currency = "BHD",
-    amount = 0,
-    amountWords = "",
-    beneficiaryName = "",
-    hideBeneficiary = false,
-    notes = "",
-  } = req.body || {};
+  const body = req.body || {};
 
-  if (!bankName || !chequeNumber || !date || !amount) {
+  const bankName = body.bankName || "";
+  const bankCode = body.bankCode || "";
+  const accountNumber = body.accountNumber || "";
+  const chequeNumber = body.chequeNumber || "";
+  const date = body.date || "";
+  const currency = body.currency || "BHD";
+  const amount = body.amount;
+  const amountWords = body.amountWords || "";
+  const beneficiaryName = body.beneficiaryName || "";
+  const hideBeneficiary = !!body.hideBeneficiary;
+  const notes = body.notes || "";
+
+  if (!bankName || !chequeNumber || !date || amount === undefined || amount === null) {
     return res.status(400).json({
       message: "bankName, chequeNumber, date, amount are required",
     });
   }
 
+  const user = req.user || {};
   const all = read();
   const id = Date.now().toString(36);
   const nowIso = new Date().toISOString();
 
   const payload = {
-    id,
-    // explicit "Pending" status for fresh cheques (Pending Approval)
-    status: "Pending",
-    bankName,
-    bankCode,
-    accountNumber,
-    chequeNumber,
-    date,
-    currency,
+    id: id,
+    status: "Pending", // new cheques are waiting for approval
+    bankName: bankName,
+    bankCode: bankCode,
+    accountNumber: accountNumber,
+    chequeNumber: chequeNumber,
+    date: date,
+    currency: currency || "BHD",
     amount: Number(amount),
-    amountWords,
+    amountWords: amountWords,
     beneficiaryName: hideBeneficiary ? "" : beneficiaryName,
-    hideBeneficiary: !!hideBeneficiary,
-    notes,
+    hideBeneficiary: hideBeneficiary,
+    notes: notes,
     createdBy: {
-      id: req.user?.id,
-      name: req.user?.name,
-      email: req.user?.email,
-      role: req.user?.role,
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
     },
     createdAt: nowIso,
     updatedAt: nowIso,
@@ -126,87 +144,83 @@ r.post("/", requireAuth, (req, res) => {
   res.status(201).json(payload);
 });
 
-/** Get one cheque */
+/**
+ * GET /api/cheques/:id
+ */
 r.get("/:id", requireAuth, (req, res) => {
-  const x = read().find((c) => c.id === req.params.id);
-  if (!x) return res.status(404).json({ message: "Not found" });
+  const id = req.params.id;
+  const x = read().find((c) => c.id === id || c._id === id);
+  if (!x) {
+    return res.status(404).json({ message: "Not found" });
+  }
   res.json(x);
 });
 
-/** Update cheque (edit mode) */
+/**
+ * PUT /api/cheques/:id
+ * Update cheque
+ */
 r.put("/:id", requireAuth, (req, res) => {
-  const { id } = req.params;
+  const id = req.params.id;
   const all = read();
-  const idx = all.findIndex((c) => c.id === id);
-  if (idx < 0) return res.status(404).json({ message: "Not found" });
+
+  const idx = all.findIndex((c) => c.id === id || c._id === id);
+  if (idx < 0) {
+    return res.status(404).json({ message: "Not found" });
+  }
 
   const existing = all[idx];
+  const body = req.body || {};
 
-  const {
-    bankName,
-    bankCode,
-    accountNumber,
-    chequeNumber,
-    date,
-    currency,
-    amount,
-    amountWords,
-    beneficiaryName,
-    hideBeneficiary,
-    notes,
-    status,
-  } = req.body || {};
-
-  if (bankName !== undefined) {
-    existing.bankName = String(bankName).trim();
+  if (body.bankName !== undefined) {
+    existing.bankName = String(body.bankName).trim();
   }
-  if (bankCode !== undefined) {
-    existing.bankCode = String(bankCode).trim();
+  if (body.bankCode !== undefined) {
+    existing.bankCode = String(body.bankCode).trim();
   }
-  if (accountNumber !== undefined) {
-    existing.accountNumber = String(accountNumber).trim();
+  if (body.accountNumber !== undefined) {
+    existing.accountNumber = String(body.accountNumber).trim();
   }
-  if (chequeNumber !== undefined) {
-    existing.chequeNumber = String(chequeNumber).trim();
+  if (body.chequeNumber !== undefined) {
+    existing.chequeNumber = String(body.chequeNumber).trim();
   }
-  if (date !== undefined) {
-    existing.date = String(date).trim();
+  if (body.date !== undefined) {
+    existing.date = String(body.date).trim();
   }
-  if (currency !== undefined) {
-    existing.currency = String(currency).trim() || "BHD";
+  if (body.currency !== undefined) {
+    existing.currency = String(body.currency || "BHD").trim();
   }
-  if (amount !== undefined) {
-    const num = Number(amount);
+  if (body.amount !== undefined) {
+    const num = Number(body.amount);
     if (Number.isNaN(num)) {
       return res.status(400).json({ message: "Amount must be a number" });
     }
     existing.amount = num;
   }
-  if (amountWords !== undefined) {
-    existing.amountWords = String(amountWords).trim();
+  if (body.amountWords !== undefined) {
+    existing.amountWords = String(body.amountWords).trim();
   }
 
   // handle beneficiary + hide flag together
   let newHide = existing.hideBeneficiary;
-  if (hideBeneficiary !== undefined) {
-    newHide = !!hideBeneficiary;
+  if (body.hideBeneficiary !== undefined) {
+    newHide = !!body.hideBeneficiary;
   }
 
   let newBeneficiary = existing.beneficiaryName;
-  if (beneficiaryName !== undefined) {
-    newBeneficiary = String(beneficiaryName).trim();
+  if (body.beneficiaryName !== undefined) {
+    newBeneficiary = String(body.beneficiaryName).trim();
   }
 
   existing.hideBeneficiary = newHide;
   existing.beneficiaryName = newHide ? "" : newBeneficiary;
 
-  if (notes !== undefined) {
-    existing.notes = String(notes).trim();
+  if (body.notes !== undefined) {
+    existing.notes = String(body.notes).trim();
   }
 
-  if (status !== undefined) {
-    // no strict validation; frontend controls allowed values
-    existing.status = String(status).trim();
+  if (body.status !== undefined) {
+    existing.status = String(body.status).trim();
   }
 
   existing.updatedAt = new Date().toISOString();
@@ -216,25 +230,36 @@ r.put("/:id", requireAuth, (req, res) => {
   return res.json(existing);
 });
 
-/** Approve (Manager/Admin only) */
+/**
+ * POST /api/cheques/:id/approve
+ * Manager/Admin only
+ */
 r.post("/:id/approve", requireAuth, (req, res) => {
-  if (!["Manager", "Admin"].includes(req.user?.role)) {
-    return res.status(403).json({ message: "Only Manager/Admin can approve" });
+  const user = req.user || {};
+  const role = user.role || "";
+
+  if (["Manager", "Admin"].indexOf(role) === -1) {
+    return res
+      .status(403)
+      .json({ message: "Only Manager/Admin can approve" });
   }
 
   const all = read();
-  const i = all.findIndex((c) => c.id === req.params.id);
-  if (i < 0) return res.status(404).json({ message: "Not found" });
+  const id = req.params.id;
+  const i = all.findIndex((c) => c.id === id || c._id === id);
+  if (i < 0) {
+    return res.status(404).json({ message: "Not found" });
+  }
 
   const nowIso = new Date().toISOString();
 
   all[i].status = "Approved";
   all[i].approvedAt = nowIso;
   all[i].approvedBy = {
-    id: req.user.id,
-    name: req.user.name,
-    email: req.user.email,
-    role: req.user.role,
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
   };
   all[i].updatedAt = nowIso;
 
@@ -242,26 +267,36 @@ r.post("/:id/approve", requireAuth, (req, res) => {
   res.json(all[i]);
 });
 
-/** Cancel (Manager/Admin only) */
+/**
+ * POST /api/cheques/:id/cancel
+ * Manager/Admin only
+ */
 r.post("/:id/cancel", requireAuth, (req, res) => {
-  if (!["Manager", "Admin"].includes(req.user?.role)) {
-    return res.status(403).json({ message: "Only Manager/Admin can cancel" });
+  const user = req.user || {};
+  const role = user.role || "";
+
+  if (["Manager", "Admin"].indexOf(role) === -1) {
+    return res
+      .status(403)
+      .json({ message: "Only Manager/Admin can cancel" });
   }
 
   const all = read();
-  const i = all.findIndex((c) => c.id === req.params.id);
-  if (i < 0) return res.status(404).json({ message: "Not found" });
+  const id = req.params.id;
+  const i = all.findIndex((c) => c.id === id || c._id === id);
+  if (i < 0) {
+    return res.status(404).json({ message: "Not found" });
+  }
 
   const nowIso = new Date().toISOString();
 
-  // status wording kept as "Cancelled" but we normalize on frontend
   all[i].status = "Cancelled";
   all[i].cancelledAt = nowIso;
   all[i].cancelledBy = {
-    id: req.user.id,
-    name: req.user.name,
-    email: req.user.email,
-    role: req.user.role,
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
   };
   all[i].updatedAt = nowIso;
 
@@ -269,20 +304,19 @@ r.post("/:id/cancel", requireAuth, (req, res) => {
   res.json(all[i]);
 });
 
-/** Delete cheque */
+/**
+ * DELETE /api/cheques/:id
+ */
 r.delete("/:id", requireAuth, (req, res) => {
-  const { id } = req.params;
+  const id = req.params.id;
   const all = read();
 
-  const idx = all.findIndex(
-    (c) => c.id === id || c._id === id
-  );
-
+  const idx = all.findIndex((c) => c.id === id || c._id === id);
   if (idx < 0) {
     return res.status(404).json({ message: "Cheque not found" });
   }
 
-  const [removed] = all.splice(idx, 1);
+  const removed = all.splice(idx, 1)[0];
   write(all);
 
   return res.json({ ok: true, removed });
