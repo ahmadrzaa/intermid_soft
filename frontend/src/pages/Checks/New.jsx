@@ -2,6 +2,9 @@
 import React, { useMemo } from "react";
 import { useLocation } from "react-router-dom";
 
+// Use same API base as the React app (from Vite env)
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "/api";
+
 const NewCheque = () => {
   const location = useLocation();
 
@@ -28,6 +31,9 @@ const NewCheque = () => {
     // mode: from URL, otherwise "view" when id exists, else "new"
     const mode = modeFromQuery || (idFromQuery ? "view" : "new");
     params.set("mode", mode);
+
+    // VERY IMPORTANT: pass backend API base into the iframe
+    params.set("apiBase", API_BASE);
 
     return `/cheque_bbk.html?${params.toString()}`;
   }, [idFromQuery, bankFromQuery, approvedFromQuery, modeFromQuery]);

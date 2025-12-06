@@ -671,7 +671,7 @@
         crossorigin="Anonymous"
         id="temp_img"
         class="private"
-        src="bbk-3.jpg"
+        src="bbk-3.jpeg"
       />
       <canvas id="cheque_img_back"></canvas>
       <canvas id="cheque_img"></canvas>
@@ -718,10 +718,14 @@
       URL_PARAMS.get("approved") === "1" ||
       URL_PARAMS.get("approved") === "true";
 
-    // Use 3001 backend in dev, /api in prod
-    const API_BASE = window.location.origin.includes("localhost:5173")
-      ? "http://localhost:3001/api"
-      : "/api";
+    // Backend base – comes from React via ?apiBase=...
+    const API_BASE_FROM_QUERY = URL_PARAMS.get("apiBase");
+    const API_BASE =
+      API_BASE_FROM_QUERY && API_BASE_FROM_QUERY.trim() !== ""
+        ? API_BASE_FROM_QUERY
+        : (window.location.origin.includes("localhost:5173")
+            ? "http://localhost:3001/api"
+            : "/api");
 
     /* ======== FIND JWT TOKEN (for auth) ========= */
     function findJwtToken() {
@@ -763,43 +767,43 @@
     const BANK_TEMPLATES = {
       bbk: {
         label: "Bank of Bahrain and Kuwait (BBK)",
-        image: "bbk-3.jpg",
+        image: "bbk-3.jpeg",
       },
       nbb: {
         label: "National Bank of Bahrain",
-        image: "bbk-3.jpg",
+        image: "bbk-3.jpeg",
       },
       ahli_united: {
         label: "Ahli United Bank",
-        image: "bbk-3.jpg",
+        image: "bbk-3.jpeg",
       },
       alsalam: {
         label: "Alsalam Bank",
-        image: "bbk-3.jpg",
+        image: "bbk-3.jpeg",
       },
       abc: {
         label: "Arab Banking Corporation",
-        image: "bbk-3.jpg",
+        image: "bbk-3.jpeg",
       },
       bisb: {
         label: "Bahrain Islamic Bank",
-        image: "bbk-3.jpg",
+        image: "bbk-3.jpeg",
       },
       bdb: {
         label: "Bahrain Development Bank",
-        image: "bbk-3.jpg",
+        image: "bbk-3.jpeg",
       },
       cbb: {
         label: "Central Bank of Bahrain",
-        image: "bbk-3.jpg",
+        image: "bbk-3.jpeg",
       },
       gib: {
         label: "Gulf International Bank",
-        image: "bbk-3.jpg",
+        image: "bbk-3.jpeg",
       },
       hsbc_bh: {
         label: "HSBC Bank Middle East",
-        image: "bbk-3.jpg",
+        image: "bbk-3.jpeg",
       },
     };
 

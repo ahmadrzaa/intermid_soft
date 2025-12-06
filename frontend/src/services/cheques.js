@@ -64,32 +64,21 @@ export async function cancelCheque(id) {
 /**
  * Pending cheques for approvals
  *
- * Uses backend filter (?status=pending) which returns:
- *   - status "Pending"
- *   - status "Draft"
- *
- * And still does a safe client-side filter as a fallback.
+ * NOW: always fetch all from backend and filter on frontend,
+ * so behaviour is identical local + Render.
  */
 export async function getPendingCheques() {
-  let data;
-
-  try {
-    // ask backend specifically for "pending" (Pending + Draft)
-    data = await getCheques({ status: "pending" });
-  } catch (err) {
-    // fallback – no server filter
-    data = await getCheques();
-  }
-
+  const data = await getCheques(); // no server status filter
   const list = Array.isArray(data) ? data : data?.cheques || [];
 
   return list.filter((ch) => {
-    const st = String(ch.status || "").toLowerCase();
+    const st = String(ch.status || "").trim().toLowerCase();
     return (
       st === "draft" ||
       st === "pending" ||
       st === "pendingapproval" ||
-      st === "pending_approval"
+      st === "pending_approval" ||
+      st === "pending approval" // safety: with space
     );
   });
 }

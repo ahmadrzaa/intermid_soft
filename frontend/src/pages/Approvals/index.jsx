@@ -77,8 +77,10 @@ export default function ApprovalsPage() {
     setSelected(ch);
   }
 
-  async function handleApprove(id) {
+  async function handleApprove(rawId) {
+    const id = rawId;
     if (!id) return;
+
     setApprovingId(id);
     setError("");
 
@@ -86,10 +88,16 @@ export default function ApprovalsPage() {
       const updated = await approveCheque(id);
 
       // remove from pending list
-      setPending((curr) => curr.filter((c) => c.id !== id));
+      setPending((curr) =>
+        curr.filter((c) => (c.id || c._id) !== id)
+      );
 
       // if the selected one is this cheque, update its status in preview
-      setSelected((prev) => (prev?.id === id ? updated : prev));
+      setSelected((prev) => {
+        if (!prev) return prev;
+        const prevId = prev.id || prev._id;
+        return prevId === id ? updated : prev;
+      });
     } catch (e) {
       setError(
         e?.response?.data?.message ||
@@ -100,8 +108,10 @@ export default function ApprovalsPage() {
     }
   }
 
-  async function handleCancel(id) {
+  async function handleCancel(rawId) {
+    const id = rawId;
     if (!id) return;
+
     const ok = window.confirm(
       "Cancel this cheque? It will no longer be available for printing."
     );
@@ -114,10 +124,16 @@ export default function ApprovalsPage() {
       const updated = await cancelCheque(id);
 
       // remove from pending list
-      setPending((curr) => curr.filter((c) => c.id !== id));
+      setPending((curr) =>
+        curr.filter((c) => (c.id || c._id) !== id)
+      );
 
       // if the selected one is this cheque, update its status in preview
-      setSelected((prev) => (prev?.id === id ? updated : prev));
+      setSelected((prev) => {
+        if (!prev) return prev;
+        const prevId = prev.id || prev._id;
+        return prevId === id ? updated : prev;
+      });
     } catch (e) {
       setError(
         e?.response?.data?.message ||
@@ -128,8 +144,10 @@ export default function ApprovalsPage() {
     }
   }
 
-  async function handleDelete(id) {
+  async function handleDelete(rawId) {
+    const id = rawId;
     if (!id) return;
+
     const ok = window.confirm(
       "Delete this cheque permanently? This cannot be undone."
     );
@@ -142,8 +160,15 @@ export default function ApprovalsPage() {
       await deleteCheque(id);
 
       // remove from pending + clear preview if same
-      setPending((curr) => curr.filter((c) => c.id !== id));
-      setSelected((prev) => (prev?.id === id ? null : prev));
+      setPending((curr) =>
+        curr.filter((c) => (c.id || c._id) !== id)
+      );
+
+      setSelected((prev) => {
+        if (!prev) return prev;
+        const prevId = prev.id || prev._id;
+        return prevId === id ? null : prev;
+      });
     } catch (e) {
       setError(
         e?.response?.data?.message ||
@@ -161,7 +186,8 @@ export default function ApprovalsPage() {
       st === "draft" ||
       st === "pending" ||
       st === "pendingapproval" ||
-      st === "pending_approval"
+      st === "pending_approval" ||
+      st === "pending approval"
     ) {
       return "Pending approval";
     }
@@ -308,167 +334,176 @@ export default function ApprovalsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {pending.map((ch) => (
-                    <tr key={ch.id}>
-                      <td>{formatDate(ch.date || ch.createdAt)}</td>
-                      <td>
-                        {ch.chequeNumber || ch.chequeNo || ch.number || ""}
-                      </td>
-                      <td>
-                        {ch.hideBeneficiary
-                          ? "(Hidden)"
-                          : ch.beneficiaryName ||
-                            ch.beneficiary ||
-                            ch.payee ||
-                            ch.name ||
-                            ""}
-                      </td>
-                      <td>{ch.bankName || ch.bank || ""}</td>
-                      <td>{ch.amount ?? ""}</td>
-                      <td>
-                        {ch.createdBy?.name || ch.createdBy?.email || "-"}
-                      </td>
-                      <td>
-                        <div
-                          style={{
-                            display: "flex",
-                            gap: 8,
-                            flexWrap: "wrap",
-                            alignItems: "center",
-                          }}
-                        >
-                          {/* View icon – show preview card */}
-                          <button
-                            type="button"
-                            onClick={() => handleSelect(ch)}
-                            style={{
-                              ...iconBtnBase,
-                              color: "#2563eb",
-                            }}
-                            title="View details"
-                          >
-                            {/* eye */}
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              viewBox="0 0 24 24"
-                              width="16"
-                              height="16"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            >
-                              <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" />
-                              <circle cx="12" cy="12" r="3" />
-                            </svg>
-                          </button>
+                  {pending.map((ch) => {
+                    const id = ch.id || ch._id;
 
-                          {/* Approve icon */}
-                          <button
-                            type="button"
-                            onClick={() => handleApprove(ch.id)}
-                            disabled={approvingId === ch.id}
+                    return (
+                      <tr key={id}>
+                        <td>{formatDate(ch.date || ch.createdAt)}</td>
+                        <td>
+                          {ch.chequeNumber || ch.chequeNo || ch.number || ""}
+                        </td>
+                        <td>
+                          {ch.hideBeneficiary
+                            ? "(Hidden)"
+                            : ch.beneficiaryName ||
+                              ch.beneficiary ||
+                              ch.payee ||
+                              ch.name ||
+                              ""}
+                        </td>
+                        <td>{ch.bankName || ch.bank || ""}</td>
+                        <td>{ch.amount ?? ""}</td>
+                        <td>
+                          {ch.createdBy?.name || ch.createdBy?.email || "-"}
+                        </td>
+                        <td>
+                          <div
                             style={{
-                              ...iconBtnBase,
-                              color:
-                                approvingId === ch.id ? "#9ca3af" : "#10b981",
+                              display: "flex",
+                              gap: 8,
+                              flexWrap: "wrap",
+                              alignItems: "center",
                             }}
-                            title={
-                              approvingId === ch.id
-                                ? "Approving…"
-                                : "Approve cheque"
-                            }
                           >
-                            {/* check-circle */}
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              viewBox="0 0 24 24"
-                              width="16"
-                              height="16"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
+                            {/* View icon – show preview card */}
+                            <button
+                              type="button"
+                              onClick={() => handleSelect(ch)}
+                              style={{
+                                ...iconBtnBase,
+                                color: "#2563eb",
+                              }}
+                              title="View details"
                             >
-                              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                              <polyline points="22 4 12 14.01 9 11.01" />
-                            </svg>
-                          </button>
+                              {/* eye */}
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 24 24"
+                                width="16"
+                                height="16"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              >
+                                <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" />
+                                <circle cx="12" cy="12" r="3" />
+                              </svg>
+                            </button>
 
-                          {/* Cancel / stop icon */}
-                          <button
-                            type="button"
-                            onClick={() => handleCancel(ch.id)}
-                            disabled={cancellingId === ch.id}
-                            style={{
-                              ...iconBtnBase,
-                              color:
-                                cancellingId === ch.id ? "#9ca3af" : "#f97316",
-                            }}
-                            title={
-                              cancellingId === ch.id
-                                ? "Cancelling…"
-                                : "Cancel / stop cheque"
-                            }
-                          >
-                            {/* slash */}
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              viewBox="0 0 24 24"
-                              width="16"
-                              height="16"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
+                            {/* Approve icon */}
+                            <button
+                              type="button"
+                              onClick={() => handleApprove(id)}
+                              disabled={approvingId === id}
+                              style={{
+                                ...iconBtnBase,
+                                color:
+                                  approvingId === id ? "#9ca3af" : "#10b981",
+                              }}
+                              title={
+                                approvingId === id
+                                  ? "Approving…"
+                                  : "Approve cheque"
+                              }
                             >
-                              <circle cx="12" cy="12" r="10" />
-                              <line x1="4.93" y1="4.93" x2="19.07" y2="19.07" />
-                            </svg>
-                          </button>
+                              {/* check-circle */}
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 24 24"
+                                width="16"
+                                height="16"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              >
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                                <polyline points="22 4 12 14.01 9 11.01" />
+                              </svg>
+                            </button>
 
-                          {/* Delete icon */}
-                          <button
-                            type="button"
-                            onClick={() => handleDelete(ch.id)}
-                            disabled={deletingId === ch.id}
-                            style={{
-                              ...iconBtnBase,
-                              color:
-                                deletingId === ch.id ? "#9ca3af" : "#ef4444",
-                            }}
-                            title={
-                              deletingId === ch.id
-                                ? "Deleting…"
-                                : "Delete cheque"
-                            }
-                          >
-                            {/* trash-2 */}
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              viewBox="0 0 24 24"
-                              width="16"
-                              height="16"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
+                            {/* Cancel / stop icon */}
+                            <button
+                              type="button"
+                              onClick={() => handleCancel(id)}
+                              disabled={cancellingId === id}
+                              style={{
+                                ...iconBtnBase,
+                                color:
+                                  cancellingId === id ? "#9ca3af" : "#f97316",
+                              }}
+                              title={
+                                cancellingId === id
+                                  ? "Cancelling…"
+                                  : "Cancel / stop cheque"
+                              }
                             >
-                              <polyline points="3 6 5 6 21 6" />
-                              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
-                              <path d="M10 11v6" />
-                              <path d="M14 11v6" />
-                              <path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" />
-                            </svg>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                              {/* slash */}
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 24 24"
+                                width="16"
+                                height="16"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              >
+                                <circle cx="12" cy="12" r="10" />
+                                <line
+                                  x1="4.93"
+                                  y1="4.93"
+                                  x2="19.07"
+                                  y2="19.07"
+                                />
+                              </svg>
+                            </button>
+
+                            {/* Delete icon */}
+                            <button
+                              type="button"
+                              onClick={() => handleDelete(id)}
+                              disabled={deletingId === id}
+                              style={{
+                                ...iconBtnBase,
+                                color:
+                                  deletingId === id ? "#9ca3af" : "#ef4444",
+                              }}
+                              title={
+                                deletingId === id
+                                  ? "Deleting…"
+                                  : "Delete cheque"
+                              }
+                            >
+                              {/* trash-2 */}
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 24 24"
+                                width="16"
+                                height="16"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              >
+                                <polyline points="3 6 5 6 21 6" />
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+                                <path d="M10 11v6" />
+                                <path d="M14 11v6" />
+                                <path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" />
+                              </svg>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

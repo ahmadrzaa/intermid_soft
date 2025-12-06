@@ -178,6 +178,7 @@ export default function ChequesPage() {
             "pending",
             "pending_approval",
             "pendingapproval",
+            "pending approval", // extra safety
           ].includes(rowStatus);
           if (!isDraftLike) return false;
         } else if (statusKey === "stopped") {
@@ -455,6 +456,7 @@ export default function ChequesPage() {
                         "pending",
                         "pending_approval",
                         "pendingapproval",
+                        "pending approval", // extra safety
                       ].includes(statusNorm)
                     ) {
                       friendlyStatus = "Pending approval";

@@ -1,4 +1,4 @@
-// backend/src/routes/cheques.js
+.// backend/src/routes/cheques.js
 import { Router } from "express";
 import fs from "fs";
 import path from "path";
@@ -98,7 +98,7 @@ r.post("/", requireAuth, (req, res) => {
 
   const payload = {
     id,
-    // NEW: explicit "Pending" status for fresh cheques (Pending Approval)
+    // explicit "Pending" status for fresh cheques (Pending Approval)
     status: "Pending",
     bankName,
     bankCode,

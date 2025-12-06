@@ -141,5 +141,35 @@
     },
     "createdAt": "2025-12-06T10:34:25.596Z",
     "updatedAt": "2025-12-06T10:34:25.596Z"
+  },
+  {
+    "id": "miuat2ve",
+    "status": "Approved",
+    "bankName": "Bank of Bahrain and Kuwait (BBK)",
+    "bankCode": "bbk",
+    "accountNumber": "",
+    "chequeNumber": "CHQ-BBK-1765025830343",
+    "date": "2025-12-06",
+    "currency": "BHD",
+    "amount": 600,
+    "amountWords": "Six Hundred ",
+    "beneficiaryName": "Sharaf dg",
+    "hideBeneficiary": false,
+    "notes": "Company: Ahmad khan",
+    "createdBy": {
+      "id": "mioknfyk",
+      "name": "Admin User",
+      "email": "digital@intermid.net",
+      "role": "Admin"
+    },
+    "createdAt": "2025-12-06T12:57:10.346Z",
+    "updatedAt": "2025-12-06T12:57:35.135Z",
+    "approvedAt": "2025-12-06T12:57:35.135Z",
+    "approvedBy": {
+      "id": "mioknfyk",
+      "name": "Admin User",
+      "email": "digital@intermid.net",
+      "role": "Admin"
+    }
   }
 ]
