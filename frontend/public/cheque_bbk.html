@@ -721,19 +721,25 @@
     // Backend base – prefer ?apiBase=... from React, otherwise pick by origin
     const API_BASE_FROM_QUERY = URL_PARAMS.get("apiBase");
     const API_BASE = (function () {
+      let base;
+
       if (API_BASE_FROM_QUERY && API_BASE_FROM_QUERY.trim() !== "") {
-        return API_BASE_FROM_QUERY.trim();
+        base = API_BASE_FROM_QUERY.trim();
+      } else {
+        const origin = window.location.origin || "";
+
+        // Local dev: Vite frontend on 5173, backend on 3001 (no /api here)
+        if (origin.includes("localhost:5173")) {
+          base = "http://localhost:3001";
+        } else {
+          // Fallback: assume same-origin reverse proxy
+          base = origin;
+        }
       }
 
-      const origin = window.location.origin || "";
-
-      // Local dev: Vite frontend on 5173, backend on 3001
-      if (origin.includes("localhost:5173")) {
-        return "http://localhost:3001/api";
-      }
-
-      // Fallback: assume same-origin reverse proxy
-      return origin.replace(/\/+$/, "") + "/api";
+      // normalise and append /api once
+      base = base.replace(/\/+$/, "");
+      return base + "/api";
     })();
 
     console.log("Cheque API_BASE =", API_BASE);
@@ -1656,12 +1662,12 @@
 
     /* Live preview + persist on calibration changes */
     jQuery(
-      "#ch_amount,#ch_name,#ch_date,.line_length,.line_length2,\
-#cfg_name_x,#cfg_name_y,#cfg_name_font,#cfg_name_track,\
-#cfg_words_x,#cfg_words_y,#cfg_words_gap,#cfg_words_font,#cfg_words_track,\
-#cfg_num_x,#cfg_num_y,#cfg_num_font,\
-#cfg_date_x,#cfg_date_y,#cfg_gap_day,#cfg_gap_mon,#cfg_gap_year,#cfg_date_font,\
-#cfg_scale,#cfg_rotate"
+      "#ch_amount,#ch_name,#ch_date,.line_length,.line_length2," +
+        "#cfg_name_x,#cfg_name_y,#cfg_name_font,#cfg_name_track," +
+        "#cfg_words_x,#cfg_words_y,#cfg_words_gap,#cfg_words_font,#cfg_words_track," +
+        "#cfg_num_x,#cfg_num_y,#cfg_num_font," +
+        "#cfg_date_x,#cfg_date_y,#cfg_gap_day,#cfg_gap_mon,#cfg_gap_year,#cfg_date_font," +
+        "#cfg_scale,#cfg_rotate"
     ).on("change input", function () {
       saveCalibration();
       if (

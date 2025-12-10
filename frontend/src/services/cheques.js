@@ -1,4 +1,4 @@
-// src/services/cheques.js
+// frontend/src/services/cheques.js
 // PURE JS SERVICE FILE – no JSX allowed here.
 
 import api from "./api";

@@ -1,9 +1,10 @@
 // frontend/src/pages/Checks/New.jsx
 import React, { useMemo } from "react";
 import { useLocation } from "react-router-dom";
+import { API_ROOT } from "../../services/api";
 
-// Use same API base as the React app (from Vite env)
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "/api";
+// Use the same backend root URL that axios uses
+const API_BASE = API_ROOT;
 
 const NewCheque = () => {
   const location = useLocation();
@@ -32,7 +33,8 @@ const NewCheque = () => {
     const mode = modeFromQuery || (idFromQuery ? "view" : "new");
     params.set("mode", mode);
 
-    // VERY IMPORTANT: pass backend API base into the iframe
+    // VERY IMPORTANT: pass backend API root into the iframe
+    // cheque_bbk.html JS will call: `${apiBase}/api/cheques`
     params.set("apiBase", API_BASE);
 
     return `/cheque_bbk.html?${params.toString()}`;

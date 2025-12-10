@@ -171,5 +171,35 @@
       "email": "digital@intermid.net",
       "role": "Admin"
     }
+  },
+  {
+    "id": "mizpov4w",
+    "status": "Approved",
+    "bankName": "Bank of Bahrain and Kuwait (BBK)",
+    "bankCode": "bbk",
+    "accountNumber": "",
+    "chequeNumber": "CHQ-BBK-1765353158812",
+    "date": "2025-12-10",
+    "currency": "BHD",
+    "amount": 100,
+    "amountWords": "One Hundred ",
+    "beneficiaryName": "Vaishakh",
+    "hideBeneficiary": false,
+    "notes": "Company: Vaishakh  llc",
+    "createdBy": {
+      "id": "mioknfyk",
+      "name": "Admin User",
+      "email": "digital@intermid.net",
+      "role": "Admin"
+    },
+    "createdAt": "2025-12-10T07:52:38.816Z",
+    "updatedAt": "2025-12-10T07:52:46.902Z",
+    "approvedAt": "2025-12-10T07:52:46.902Z",
+    "approvedBy": {
+      "id": "mioknfyk",
+      "name": "Admin User",
+      "email": "digital@intermid.net",
+      "role": "Admin"
+    }
   }
 ]

@@ -5,6 +5,9 @@ import axios from "axios";
 // fallback to local dev server when running locally.
 const baseURL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
+// Exported so other places (like cheque_bbk iframe) can use the same backend root
+export const API_ROOT = baseURL;
+
 const api = axios.create({
   baseURL,
   withCredentials: false, // we're using Bearer tokens, not cookies
