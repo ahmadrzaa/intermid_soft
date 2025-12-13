@@ -78,7 +78,7 @@ export async function getPendingCheques() {
       st === "pending" ||
       st === "pendingapproval" ||
       st === "pending_approval" ||
-      st === "pending approval" // safety: with space
+      st === "pending approval"
     );
   });
 }
@@ -132,14 +132,13 @@ export async function getDashboardSummary() {
 
     const st = String(ch.status || "").toLowerCase();
 
-    // PENDING APPROVAL = Pending + Draft + PendingApproval variants
     if (
       st === "draft" ||
       st === "pending" ||
       st === "pendingapproval" ||
       st === "pending_approval"
     ) {
-      stats.status.draft += 1; // we reuse draft counter for "to be approved"
+      stats.status.draft += 1;
       stats.status.pendingApproval += 1;
     } else if (st === "approved") {
       stats.status.approved += 1;
@@ -151,9 +150,7 @@ export async function getDashboardSummary() {
       stats.status.stopped += 1;
     }
 
-    // last activity date (printed > approved > updated > created)
-    const d =
-      ch.printedAt || ch.approvedAt || ch.updatedAt || ch.createdAt;
+    const d = ch.printedAt || ch.approvedAt || ch.updatedAt || ch.createdAt;
     const dt = d ? new Date(d) : null;
 
     if (dt && !isNaN(dt)) {
@@ -168,7 +165,6 @@ export async function getDashboardSummary() {
   stats.payeesCount = payeesSet.size;
   stats.banksCount = banksSet.size;
 
-  // sort recent cheques (latest first)
   const recentSorted = [...list].sort((a, b) => {
     const da = a.updatedAt || a.createdAt;
     const db = b.updatedAt || b.createdAt;

@@ -34,7 +34,7 @@ const NewCheque = () => {
     params.set("mode", mode);
 
     // VERY IMPORTANT: pass backend API root into the iframe
-    // cheque_bbk.html JS will call: `${apiBase}/api/cheques`
+    // cheque_bbk.html JS will call: `${apiBase}/api/...`
     params.set("apiBase", API_BASE);
 
     return `/cheque_bbk.html?${params.toString()}`;

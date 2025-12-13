@@ -28,8 +28,24 @@ const defaultForm = {
   notes: "",
 };
 
+// Normalize any backend row shape to a stable UI row
+function normalizeRow(b) {
+  if (!b) return null;
+  const id = b.id || b._id || b.beneficiaryId || b.uuid || b.key || "";
+  return {
+    ...b,
+    id,
+    name: b.name || b.beneficiaryName || b.fullName || "",
+    alias: b.alias || "",
+    hideByDefault: !!(b.hideByDefault ?? b.hide_beneficiary ?? b.hideBeneficiary),
+    notes: b.notes || "",
+    createdAt: b.createdAt || b.created_at || b.created || null,
+    createdBy: b.createdBy || b.created_by || null,
+  };
+}
+
 export default function BeneficiariesPage() {
-  const { user } = useAuth();
+  const { user } = useAuth(); // kept (may be used later for role/permissions)
 
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -50,11 +66,26 @@ export default function BeneficiariesPage() {
     setLoadError("");
     try {
       const data = await listBeneficiaries();
-      const list = Array.isArray(data) ? data : data?.beneficiaries || [];
+
+      // support multiple response shapes
+      const list =
+        Array.isArray(data)
+          ? data
+          : Array.isArray(data?.beneficiaries)
+          ? data.beneficiaries
+          : Array.isArray(data?.items)
+          ? data.items
+          : Array.isArray(data?.data)
+          ? data.data
+          : [];
+
+      const normalized = list.map(normalizeRow).filter(Boolean);
+
       // sort by name
-      const sorted = [...list].sort((a, b) =>
+      const sorted = [...normalized].sort((a, b) =>
         (a.name || "").localeCompare(b.name || "")
       );
+
       setRows(sorted);
     } catch (_e) {
       setLoadError("Unable to load beneficiaries from server.");
@@ -65,6 +96,7 @@ export default function BeneficiariesPage() {
 
   useEffect(() => {
     refresh();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // ===== FILTERED LIST =====
@@ -78,10 +110,16 @@ export default function BeneficiariesPage() {
 
       if (!term) return true;
 
+      // include extra future fields too (no harm)
       const hay = [
         b.name,
         b.alias,
         b.notes,
+        b.mobile,
+        b.phone,
+        b.iban,
+        b.accountNumber,
+        b.email,
         b.createdBy?.name,
         b.createdBy?.email,
       ]
@@ -102,12 +140,13 @@ export default function BeneficiariesPage() {
   };
 
   const openEdit = (row) => {
-    setEditing(row);
+    const r = normalizeRow(row) || row || {};
+    setEditing(r);
     setForm({
-      name: row.name || "",
-      alias: row.alias || "",
-      hideByDefault: !!row.hideByDefault,
-      notes: row.notes || "",
+      name: r.name || "",
+      alias: r.alias || "",
+      hideByDefault: !!r.hideByDefault,
+      notes: r.notes || "",
     });
     setFormError("");
     setFormOpen(true);
@@ -136,18 +175,22 @@ export default function BeneficiariesPage() {
 
     setSaving(true);
     try {
-      if (editing && editing.id) {
-        await updateBeneficiary(editing.id, payload);
+      const editId =
+        (editing && (editing.id || editing._id || editing.beneficiaryId)) || "";
+
+      if (editId) {
+        await updateBeneficiary(editId, payload);
       } else {
         await createBeneficiary(payload);
       }
+
       await refresh();
       setFormOpen(false);
       setEditing(null);
       setForm(defaultForm);
-    } catch (e) {
+    } catch (e2) {
       const msg =
-        e?.response?.data?.message ||
+        e2?.response?.data?.message ||
         "Unable to save beneficiary. Please try again.";
       setFormError(msg);
     } finally {
@@ -156,14 +199,17 @@ export default function BeneficiariesPage() {
   };
 
   const handleDelete = async (row) => {
-    if (!row?.id) return;
+    const r = normalizeRow(row);
+    const id = r?.id;
+    if (!id) return;
+
     const ok = window.confirm(
-      `Delete beneficiary "${row.name}"? This cannot be undone.`
+      `Delete beneficiary "${r.name || "this item"}"? This cannot be undone.`
     );
     if (!ok) return;
 
     try {
-      await deleteBeneficiary(row.id);
+      await deleteBeneficiary(id);
       await refresh();
     } catch (e) {
       alert(
@@ -179,9 +225,7 @@ export default function BeneficiariesPage() {
       <div className="bene-header-row">
         <div>
           <div className="bene-kicker">Beneficiaries</div>
-          <h1 className="bene-title">
-            Saved beneficiaries & regular suppliers
-          </h1>
+          <h1 className="bene-title">Saved beneficiaries & regular suppliers</h1>
           <p className="bene-subtitle">
             Add beneficiaries once, re-use them on new cheques, and choose
             whether their name should appear or stay hidden on the printed
@@ -240,8 +284,7 @@ export default function BeneficiariesPage() {
             <button
               type="button"
               className={
-                "bene-chip" +
-                (visibilityFilter === "visible" ? " is-active" : "")
+                "bene-chip" + (visibilityFilter === "visible" ? " is-active" : "")
               }
               onClick={() => setVisibilityFilter("visible")}
             >
@@ -251,8 +294,7 @@ export default function BeneficiariesPage() {
             <button
               type="button"
               className={
-                "bene-chip" +
-                (visibilityFilter === "hidden" ? " is-active" : "")
+                "bene-chip" + (visibilityFilter === "hidden" ? " is-active" : "")
               }
               onClick={() => setVisibilityFilter("hidden")}
             >
@@ -268,9 +310,7 @@ export default function BeneficiariesPage() {
         <section className="bene-section">
           <div className="bene-form-card">
             <div className="bene-form-header">
-              <h2>
-                {editing ? "Edit beneficiary" : "Add new beneficiary"}
-              </h2>
+              <h2>{editing ? "Edit beneficiary" : "Add new beneficiary"}</h2>
               <button
                 type="button"
                 className="bene-form-close"
@@ -300,9 +340,8 @@ export default function BeneficiariesPage() {
                     <FiUser className="bene-input-icon" />
                   </div>
                   <p className="bene-help">
-                    You can still leave the name empty when preparing a new
-                    cheque – the system will allow optional beneficiary entry as
-                    requested by the client.
+                    The beneficiary record needs a name, but you can choose to
+                    hide it on printed cheques using the toggle below.
                   </p>
                 </div>
 
@@ -354,9 +393,7 @@ export default function BeneficiariesPage() {
                 </div>
               </div>
 
-              {formError && (
-                <div className="bene-form-error">{formError}</div>
-              )}
+              {formError && <div className="bene-form-error">{formError}</div>}
 
               <div className="bene-form-actions">
                 <button
@@ -377,11 +414,7 @@ export default function BeneficiariesPage() {
                   className="bene-btn bene-btn-primary"
                   disabled={saving}
                 >
-                  {saving
-                    ? "Saving…"
-                    : editing
-                    ? "Save changes"
-                    : "Create beneficiary"}
+                  {saving ? "Saving…" : editing ? "Save changes" : "Create beneficiary"}
                 </button>
               </div>
             </form>
@@ -429,10 +462,11 @@ export default function BeneficiariesPage() {
                 )}
 
                 {!loading &&
-                  filtered.map((b) => {
-                    const created = b.createdAt
-                      ? new Date(b.createdAt)
-                      : null;
+                  filtered.map((bRaw) => {
+                    const b = normalizeRow(bRaw) || bRaw;
+                    const rowKey = b.id || `${b.name}-${b.createdAt || ""}`;
+
+                    const created = b.createdAt ? new Date(b.createdAt) : null;
                     const dateStr =
                       created && !isNaN(created)
                         ? created.toISOString().slice(0, 10)
@@ -445,10 +479,10 @@ export default function BeneficiariesPage() {
                       "";
 
                     return (
-                      <tr key={b.id}>
+                      <tr key={rowKey}>
                         <td>
                           <div className="bene-name-cell">
-                            <span className="bene-name">{b.name}</span>
+                            <span className="bene-name">{b.name || "—"}</span>
                             {creator && (
                               <span className="bene-name-sub">
                                 Added by {creator}

@@ -1,1 +1,77 @@
-[]
+[
+  {
+    "id": "mj40gsxv",
+    "name": "AL HILAL",
+    "alias": "HOSPITAL",
+    "hideByDefault": false,
+    "notes": "Supplier account: 12345",
+    "createdAt": "2025-12-13T08:05:23.203Z",
+    "updatedAt": "2025-12-13T08:05:23.203Z",
+    "createdBy": {
+      "id": "mioknfyk",
+      "name": "Admin User",
+      "email": "digital@intermid.net",
+      "role": "Admin"
+    }
+  },
+  {
+    "id": "mj421d69",
+    "name": "Raza",
+    "alias": "Shaikh",
+    "hideByDefault": false,
+    "notes": "for updating code",
+    "createdAt": "2025-12-13T08:49:22.161Z",
+    "updatedAt": "2025-12-13T08:49:22.161Z",
+    "createdBy": {
+      "id": "mioknfyk",
+      "name": "Admin User",
+      "email": "digital@intermid.net",
+      "role": "Admin"
+    }
+  },
+  {
+    "id": "mj42rz5b",
+    "name": "Arun singh",
+    "alias": "INTERMID",
+    "hideByDefault": false,
+    "notes": "for maintance",
+    "createdAt": "2025-12-13T09:10:03.695Z",
+    "updatedAt": "2025-12-13T09:10:34.193Z",
+    "createdBy": {
+      "id": "mioknfyk",
+      "name": "Admin User",
+      "email": "digital@intermid.net",
+      "role": "Admin"
+    }
+  },
+  {
+    "id": "mj43efxd",
+    "name": "Vaishak kamalon",
+    "alias": "",
+    "hideByDefault": false,
+    "notes": "for 3d",
+    "createdAt": "2025-12-13T09:27:31.873Z",
+    "updatedAt": "2025-12-13T09:27:31.873Z",
+    "createdBy": {
+      "id": "mioknfyk",
+      "name": "Admin User",
+      "email": "digital@intermid.net",
+      "role": "Admin"
+    }
+  },
+  {
+    "id": "mj45fbck",
+    "name": "ARUN",
+    "alias": "",
+    "hideByDefault": false,
+    "notes": "",
+    "createdAt": "2025-12-13T10:24:11.828Z",
+    "updatedAt": "2025-12-13T10:24:11.828Z",
+    "createdBy": {
+      "id": "mioknfyk",
+      "name": "Admin User",
+      "email": "digital@intermid.net",
+      "role": "Admin"
+    }
+  }
+]

@@ -63,11 +63,7 @@ r.get("/", requireAuth, (req, res) => {
     .filter(Boolean);
 
   const wantsPendingAgg = wanted.some((s) => {
-    return (
-      s === "pending" ||
-      s === "pendingapproval" ||
-      s === "pending_approval"
-    );
+    return s === "pending" || s === "pendingapproval" || s === "pending_approval";
   });
 
   const rows = all.filter((c) => {
@@ -103,6 +99,7 @@ r.post("/", requireAuth, (req, res) => {
   const beneficiaryName = body.beneficiaryName || "";
   const hideBeneficiary = !!body.hideBeneficiary;
   const notes = body.notes || "";
+  const previewImage = body.previewImage || null;
 
   if (!bankName || !chequeNumber || !date || amount === undefined || amount === null) {
     return res.status(400).json({
@@ -118,17 +115,24 @@ r.post("/", requireAuth, (req, res) => {
   const payload = {
     id: id,
     status: "Pending", // new cheques are waiting for approval
-    bankName: bankName,
-    bankCode: bankCode,
-    accountNumber: accountNumber,
-    chequeNumber: chequeNumber,
-    date: date,
-    currency: currency || "BHD",
+    bankName: String(bankName).trim(),
+    bankCode: String(bankCode || "").trim(),
+    accountNumber: String(accountNumber || "").trim(),
+    chequeNumber: String(chequeNumber).trim(),
+    date: String(date).trim(),
+    currency: String(currency || "BHD").trim(),
     amount: Number(amount),
-    amountWords: amountWords,
-    beneficiaryName: hideBeneficiary ? "" : beneficiaryName,
+    amountWords: String(amountWords || "").trim(),
+
+    // ✅ store always for audit
+    beneficiaryName: String(beneficiaryName || "").trim(),
     hideBeneficiary: hideBeneficiary,
-    notes: notes,
+
+    notes: String(notes || "").trim(),
+
+    // ✅ store preview image if provided (used for approvals UI)
+    previewImage: previewImage,
+
     createdBy: {
       id: user.id,
       name: user.name,
@@ -172,24 +176,13 @@ r.put("/:id", requireAuth, (req, res) => {
   const existing = all[idx];
   const body = req.body || {};
 
-  if (body.bankName !== undefined) {
-    existing.bankName = String(body.bankName).trim();
-  }
-  if (body.bankCode !== undefined) {
-    existing.bankCode = String(body.bankCode).trim();
-  }
-  if (body.accountNumber !== undefined) {
-    existing.accountNumber = String(body.accountNumber).trim();
-  }
-  if (body.chequeNumber !== undefined) {
-    existing.chequeNumber = String(body.chequeNumber).trim();
-  }
-  if (body.date !== undefined) {
-    existing.date = String(body.date).trim();
-  }
-  if (body.currency !== undefined) {
-    existing.currency = String(body.currency || "BHD").trim();
-  }
+  if (body.bankName !== undefined) existing.bankName = String(body.bankName).trim();
+  if (body.bankCode !== undefined) existing.bankCode = String(body.bankCode).trim();
+  if (body.accountNumber !== undefined) existing.accountNumber = String(body.accountNumber).trim();
+  if (body.chequeNumber !== undefined) existing.chequeNumber = String(body.chequeNumber).trim();
+  if (body.date !== undefined) existing.date = String(body.date).trim();
+  if (body.currency !== undefined) existing.currency = String(body.currency || "BHD").trim();
+
   if (body.amount !== undefined) {
     const num = Number(body.amount);
     if (Number.isNaN(num)) {
@@ -197,31 +190,24 @@ r.put("/:id", requireAuth, (req, res) => {
     }
     existing.amount = num;
   }
-  if (body.amountWords !== undefined) {
-    existing.amountWords = String(body.amountWords).trim();
-  }
 
-  // handle beneficiary + hide flag together
-  let newHide = existing.hideBeneficiary;
-  if (body.hideBeneficiary !== undefined) {
-    newHide = !!body.hideBeneficiary;
-  }
+  if (body.amountWords !== undefined) existing.amountWords = String(body.amountWords).trim();
 
-  let newBeneficiary = existing.beneficiaryName;
+  // ✅ keep beneficiary always stored
   if (body.beneficiaryName !== undefined) {
-    newBeneficiary = String(body.beneficiaryName).trim();
+    existing.beneficiaryName = String(body.beneficiaryName || "").trim();
+  }
+  if (body.hideBeneficiary !== undefined) {
+    existing.hideBeneficiary = !!body.hideBeneficiary;
   }
 
-  existing.hideBeneficiary = newHide;
-  existing.beneficiaryName = newHide ? "" : newBeneficiary;
+  if (body.notes !== undefined) existing.notes = String(body.notes).trim();
 
-  if (body.notes !== undefined) {
-    existing.notes = String(body.notes).trim();
+  if (body.previewImage !== undefined) {
+    existing.previewImage = body.previewImage || null;
   }
 
-  if (body.status !== undefined) {
-    existing.status = String(body.status).trim();
-  }
+  if (body.status !== undefined) existing.status = String(body.status).trim();
 
   existing.updatedAt = new Date().toISOString();
   all[idx] = existing;
@@ -239,17 +225,13 @@ r.post("/:id/approve", requireAuth, (req, res) => {
   const role = user.role || "";
 
   if (["Manager", "Admin"].indexOf(role) === -1) {
-    return res
-      .status(403)
-      .json({ message: "Only Manager/Admin can approve" });
+    return res.status(403).json({ message: "Only Manager/Admin can approve" });
   }
 
   const all = read();
   const id = req.params.id;
   const i = all.findIndex((c) => c.id === id || c._id === id);
-  if (i < 0) {
-    return res.status(404).json({ message: "Not found" });
-  }
+  if (i < 0) return res.status(404).json({ message: "Not found" });
 
   const nowIso = new Date().toISOString();
 
@@ -276,17 +258,13 @@ r.post("/:id/cancel", requireAuth, (req, res) => {
   const role = user.role || "";
 
   if (["Manager", "Admin"].indexOf(role) === -1) {
-    return res
-      .status(403)
-      .json({ message: "Only Manager/Admin can cancel" });
+    return res.status(403).json({ message: "Only Manager/Admin can cancel" });
   }
 
   const all = read();
   const id = req.params.id;
   const i = all.findIndex((c) => c.id === id || c._id === id);
-  if (i < 0) {
-    return res.status(404).json({ message: "Not found" });
-  }
+  if (i < 0) return res.status(404).json({ message: "Not found" });
 
   const nowIso = new Date().toISOString();
 

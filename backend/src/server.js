@@ -21,12 +21,32 @@ app.use(
 );
 
 // CORS (multiple origins allowed)
+// If FRONTEND_ORIGINS contains "*", allow all origins (credentials still require explicit origin)
 const ORIGINS = (process.env.FRONTEND_ORIGINS || "http://localhost:5173")
   .split(",")
-  .map((s) => s.trim());
-app.use(cors({ origin: ORIGINS, credentials: true }));
+  .map((s) => s.trim())
+  .filter(Boolean);
+
+const allowAll = ORIGINS.includes("*");
+
+app.use(
+  cors({
+    origin: (origin, cb) => {
+      // Allow non-browser calls (no origin)
+      if (!origin) return cb(null, true);
+
+      if (allowAll) return cb(null, true);
+
+      if (ORIGINS.includes(origin)) return cb(null, true);
+
+      return cb(new Error(`CORS blocked for origin: ${origin}`), false);
+    },
+    credentials: true,
+  })
+);
 
 app.use(express.json({ limit: "1mb" }));
+app.use(express.urlencoded({ extended: true }));
 app.use(morgan("dev"));
 
 // Health

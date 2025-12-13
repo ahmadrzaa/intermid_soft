@@ -123,12 +123,8 @@
       transform: rotate(240deg);
     }
     @keyframes spin {
-      0% {
-        transform: rotate(0deg);
-      }
-      to {
-        transform: rotate(1turn);
-      }
+      0% { transform: rotate(0deg); }
+      to { transform: rotate(1turn); }
     }
 
     canvas#cheque_img {
@@ -215,12 +211,6 @@
       transform: translateY(-1px);
     }
 
-    select#company {
-      margin-bottom: 10px;
-      height: 40px;
-      padding: 0 12px;
-    }
-
     .btns {
       display: flex;
       flex-wrap: wrap;
@@ -243,6 +233,151 @@
       text-transform: uppercase;
       letter-spacing: 0.12em;
       color: #444;
+    }
+
+    /* ===== Beneficiary select row (NEW) ===== */
+    .bene-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: -2px;
+      margin-bottom: 10px;
+    }
+    .bene-row button {
+      height: 40px;
+      width: 100%;
+      text-transform: uppercase;
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      font-family: var(--font-alt);
+      font-weight: 600;
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 0;
+      border: 1px solid rgba(0, 0, 0, 0.55);
+      line-height: 40px;
+      color: #111;
+      padding: 0 18px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 14px 34px rgba(0, 0, 0, 0.30);
+      transition: transform 0.18s ease, box-shadow 0.18s ease,
+        background-color 0.18s ease, color 0.18s ease,
+        border-color 0.18s ease;
+    }
+    .bene-row button:hover {
+      background: #111;
+      color: #fdfdfd;
+      border-color: #111;
+      transform: translateY(-1px);
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+    }
+    .bene-row .mini-plus {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 18px;
+      height: 18px;
+      border: 1px solid rgba(0, 0, 0, 0.6);
+      margin-right: 10px;
+      font-size: 14px;
+      line-height: 18px;
+    }
+    .bene-row button:hover .mini-plus {
+      border-color: rgba(255,255,255,0.85);
+    }
+
+    /* ===== Modal (NEW) ===== */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      padding: 16px;
+      box-sizing: border-box;
+    }
+    .modal-card {
+      width: min(720px, 100%);
+      background: #fff;
+      border-radius: 0;
+      border: 1px solid rgba(0,0,0,0.2);
+      box-shadow: 0 18px 60px rgba(0,0,0,0.45);
+      overflow: hidden;
+    }
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 14px;
+      border-bottom: 1px solid rgba(0,0,0,0.12);
+      font-family: var(--font-display);
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      font-size: 13px;
+    }
+    .modal-close {
+      border: 1px solid rgba(0,0,0,0.35);
+      background: #fff;
+      cursor: pointer;
+      height: 34px;
+      width: 34px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      line-height: 20px;
+    }
+    .modal-body {
+      padding: 12px 14px 14px;
+    }
+    .modal-search {
+      width: 100%;
+      height: 40px;
+      padding: 0 12px;
+      border: 1px solid rgba(0,0,0,0.25);
+      margin-bottom: 10px;
+      font-family: var(--font-alt);
+      box-sizing: border-box;
+    }
+    .modal-list {
+      max-height: 340px;
+      overflow: auto;
+      border: 1px solid rgba(0,0,0,0.12);
+    }
+    .modal-item {
+      padding: 12px 12px;
+      cursor: pointer;
+      border-bottom: 1px solid rgba(0,0,0,0.08);
+      font-family: var(--font-alt);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .modal-item:hover {
+      background: rgba(0,0,0,0.05);
+    }
+    .modal-item .name {
+      font-weight: 600;
+      color: #111;
+    }
+    .modal-item .meta {
+      font-size: 12px;
+      color: #666;
+      text-align: right;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 45%;
+    }
+    .modal-empty {
+      padding: 14px 12px;
+      font-family: var(--font-alt);
+      color: #666;
     }
 
     /* ===== BUTTONS ===== */
@@ -361,10 +496,7 @@
       box-shadow: none;
     }
 
-    .adv-group {
-      margin-bottom: 14px;
-    }
-
+    .adv-group { margin-bottom: 14px; }
     .adv-title {
       font-weight: 600;
       margin-bottom: 4px;
@@ -374,21 +506,18 @@
       font-family: var(--font-alt);
       color: #444;
     }
-
     .adv-label-row,
     .adv-input-row {
       display: flex;
       gap: 10px;
       margin-bottom: 4px;
     }
-
     .adv-label-row span {
       flex: 0 0 auto;
       font-size: 11px;
       opacity: 0.85;
       min-width: 60px;
     }
-
     .adv-input-row input {
       flex: 0 0 auto;
       width: 70px;
@@ -400,10 +529,7 @@
       font-size: 12px;
       font-family: var(--font-ui);
     }
-
-    .adv-input-row input[type="number"] {
-      text-align: center;
-    }
+    .adv-input-row input[type="number"] { text-align: center; }
 
     /* ===== Responsive ===== */
     @media screen and (max-width: 991px) {
@@ -414,31 +540,15 @@
         padding: 70px 18px 40px;
         gap: 30px;
       }
-      .right_box canvas {
-        zoom: 60%;
-      }
-      .left_box {
-        width: 100%;
-        max-width: 100%;
-        margin-right: 0;
-      }
-      .print_cheque {
-        min-height: 100vh;
-      }
+      .right_box canvas { zoom: 60%; }
+      .left_box { width: 100%; max-width: 100%; margin-right: 0; }
+      .print_cheque { min-height: 100vh; }
     }
 
     @media screen and (max-width: 767px) {
-      .right_box canvas {
-        zoom: 45%;
-      }
-
-      .left_box h3 {
-        font-size: 20px;
-        letter-spacing: 0.18em;
-      }
-      .left_box {
-        width: 100%;
-      }
+      .right_box canvas { zoom: 45%; }
+      .left_box h3 { font-size: 20px; letter-spacing: 0.18em; }
+      .left_box { width: 100%; }
 
       .btns {
         width: 100%;
@@ -460,30 +570,33 @@
         margin-left: 4px;
         vertical-align: middle;
       }
-
       .adv-label-row,
-      .adv-input-row {
-        flex-wrap: wrap;
-        gap: 6px;
-      }
+      .adv-input-row { flex-wrap: wrap; gap: 6px; }
     }
 
     .print_cheque #download,
     .print_cheque #print,
-    .print_cheque #share {
-      border-radius: 0;
-    }
-    @media (max-width: 767px) {
-      .print_cheque #download,
-      .print_cheque #print,
-      .print_cheque #share {
-        border-radius: 0;
-      }
-    }
+    .print_cheque #share { border-radius: 0; }
   </style>
 </head>
+
 <body>
   <span class="msg"></span>
+
+  <!-- Beneficiary Modal (NEW) -->
+  <div id="beneficiary_modal" class="modal-backdrop">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>Select Beneficiary</div>
+        <button id="beneficiary_close" class="modal-close" type="button">×</button>
+      </div>
+      <div class="modal-body">
+        <input id="beneficiary_search" class="modal-search" type="text" placeholder="Search beneficiary..." />
+        <div id="beneficiary_list" class="modal-list"></div>
+      </div>
+    </div>
+  </div>
+
   <div class="print_cheque">
     <div class="left_box">
       <h3 id="cheque_title">Write Cheque</h3>
@@ -505,15 +618,16 @@
         </select>
       </div>
 
-      <!-- Neutral company field (only used for file/share text, not printed on cheque background) -->
-      <input
-        type="text"
-        id="company"
-        placeholder="Company name (optional)"
-        autocomplete="on"
-      />
-
       <input type="text" id="ch_name" placeholder="Name" autocomplete="on" />
+
+      <!-- NEW: Select Beneficiary option under name -->
+      <div class="bene-row">
+        <button id="select_beneficiary" type="button">
+          <span class="mini-plus">+</span>
+          Select Beneficiary
+        </button>
+      </div>
+
       <input type="date" id="ch_date" />
       <input
         type="number"
@@ -524,18 +638,15 @@
       />
 
       <div class="btns">
-        <!-- NEW: Save button (hidden in view/print mode via JS) -->
         <button id="save_cheque" type="button">
           Save
           <i class="fa fa-floppy-o" aria-hidden="true"></i>
         </button>
 
-        <!-- Hidden "Sign" (internal) -->
         <button id="populate" style="display: none;">
           Sign<i class="fa fa-pencil-square-o" aria-hidden="true"></i>
         </button>
 
-        <!-- Download / Print / Share will be blocked until approved -->
         <button id="download" type="button">
           Download<i class="fa fa-download" aria-hidden="true"></i>
         </button>
@@ -554,7 +665,6 @@
 
       <!-- SETTINGS (advanced calibration – kept as is) -->
       <div class="settings">
-        <!-- Line lengths -->
         <div class="adv-group">
           <div class="adv-title">Line lengths</div>
           <div class="adv-label-row">
@@ -562,22 +672,11 @@
             <span>Line 2</span>
           </div>
           <div class="adv-input-row">
-            <input
-              type="number"
-              id="line_length"
-              class="line_length"
-              value="33"
-            />
-            <input
-              type="number"
-              id="line_length2"
-              class="line_length"
-              value="33"
-            />
+            <input type="number" id="line_length" class="line_length" value="33" />
+            <input type="number" id="line_length2" class="line_length" value="33" />
           </div>
         </div>
 
-        <!-- Name (Payee) -->
         <div class="adv-group">
           <div class="adv-title">Name (Payee)</div>
           <div class="adv-label-row">
@@ -594,7 +693,6 @@
           </div>
         </div>
 
-        <!-- Amount (in words) -->
         <div class="adv-group">
           <div class="adv-title">Amount (in words)</div>
           <div class="adv-label-row">
@@ -613,7 +711,6 @@
           </div>
         </div>
 
-        <!-- Amount (numbers) -->
         <div class="adv-group">
           <div class="adv-title">Amount (numbers)</div>
           <div class="adv-label-row">
@@ -628,7 +725,6 @@
           </div>
         </div>
 
-        <!-- Date digits -->
         <div class="adv-group">
           <div class="adv-title">Date digits</div>
           <div class="adv-label-row">
@@ -649,7 +745,6 @@
           </div>
         </div>
 
-        <!-- Global canvas -->
         <div class="adv-group">
           <div class="adv-title">Global canvas</div>
           <div class="adv-label-row">
@@ -658,20 +753,20 @@
           </div>
           <div class="adv-input-row">
             <input type="number" id="cfg_scale" value="1.16" step="0.01" />
-            <input type="number" id="cfg_rotate" value="90" step="1" />
+            <!-- IMPORTANT: keep rotate for UI if you want, but export ignores it -->
+            <input type="number" id="cfg_rotate" value="0" step="1" />
           </div>
         </div>
       </div>
     </div>
 
     <div class="right_box">
-      <!-- LOCAL IMAGE in same folder -->
       <img
         style="display: none;"
         crossorigin="Anonymous"
         id="temp_img"
         class="private"
-        src="bbk-1.jpg"
+        src="cheque-generic.jpg"
       />
       <canvas id="cheque_img_back"></canvas>
       <canvas id="cheque_img"></canvas>
@@ -705,7 +800,7 @@
       gap_year: 21,
       date_font: 14,
       scale: 1.16,
-      rotate: 90,
+      rotate: 90
     };
     const STORAGE_KEY = "cheque_calibration_v1";
 
@@ -713,7 +808,7 @@
     const URL_PARAMS = new URLSearchParams(window.location.search);
     const CHEQUE_ID = URL_PARAMS.get("id");
     const MODE = URL_PARAMS.get("mode") || "new"; // 'new' or 'view'
-    const IS_VIEW_MODE = MODE === "view";         // for hiding Save button
+    const IS_VIEW_MODE = MODE === "view";
     const IS_APPROVED =
       URL_PARAMS.get("approved") === "1" ||
       URL_PARAMS.get("approved") === "true";
@@ -722,22 +817,16 @@
     const API_BASE_FROM_QUERY = URL_PARAMS.get("apiBase");
     const API_BASE = (function () {
       let base;
-
       if (API_BASE_FROM_QUERY && API_BASE_FROM_QUERY.trim() !== "") {
         base = API_BASE_FROM_QUERY.trim();
       } else {
         const origin = window.location.origin || "";
-
-        // Local dev: Vite frontend on 5173, backend on 3001 (no /api here)
         if (origin.includes("localhost:5173")) {
           base = "http://localhost:3001";
         } else {
-          // Fallback: assume same-origin reverse proxy
           base = origin;
         }
       }
-
-      // normalise and append /api once
       base = base.replace(/\/+$/, "");
       return base + "/api";
     })();
@@ -746,7 +835,6 @@
 
     /* ======== FIND JWT TOKEN (for auth) ========= */
     function findJwtToken() {
-      // Check common keys in localStorage
       const commonKeys = ["token", "authToken", "accessToken", "jwt", "jwtToken"];
       for (const k of commonKeys) {
         try {
@@ -754,8 +842,6 @@
           if (v && v.length > 10) return v;
         } catch (e) {}
       }
-
-      // Scan all localStorage keys for something that looks like a JWT
       try {
         for (let i = 0; i < localStorage.length; i++) {
           const k = localStorage.key(i);
@@ -765,8 +851,6 @@
           }
         }
       } catch (e) {}
-
-      // Also check sessionStorage just in case
       try {
         for (let i = 0; i < sessionStorage.length; i++) {
           const k = sessionStorage.key(i);
@@ -776,60 +860,27 @@
           }
         }
       } catch (e) {}
-
       return null;
     }
 
-    /* Bank templates mapping – placeholder images for now (10 active banks) */
+    /* Bank templates mapping – preview uses GENERIC background for all */
     const BANK_TEMPLATES = {
-      bbk: {
-        label: "Bank of Bahrain and Kuwait (BBK)",
-        image: "bbk-1.jpg",
-      },
-      nbb: {
-        label: "National Bank of Bahrain",
-        image: "bbk-1.jpg",
-      },
-      ahli_united: {
-        label: "Ahli United Bank",
-        image: "bbk-1.jpg",
-      },
-      alsalam: {
-        label: "Alsalam Bank",
-        image: "bbk-1.jpg",
-      },
-      abc: {
-        label: "Arab Banking Corporation",
-        image: "bbk-1.jpg",
-      },
-      bisb: {
-        label: "Bahrain Islamic Bank",
-        image: "bbk-1.jpg",
-      },
-      bdb: {
-        label: "Bahrain Development Bank",
-        image: "bbk-1.jpg",
-      },
-      cbb: {
-        label: "Central Bank of Bahrain",
-        image: "bbk-1.jpg",
-      },
-      gib: {
-        label: "Gulf International Bank",
-        image: "bbk-1.jpg",
-      },
-      hsbc_bh: {
-        label: "HSBC Bank Middle East",
-        image: "bbk-1.jpg",
-      },
+      bbk: { label: "Bank of Bahrain and Kuwait (BBK)", image: "cheque-generic.jpg" },
+      nbb: { label: "National Bank of Bahrain", image: "cheque-generic.jpg" },
+      ahli_united: { label: "Ahli United Bank", image: "cheque-generic.jpg" },
+      alsalam: { label: "Alsalam Bank", image: "cheque-generic.jpg" },
+      abc: { label: "Arab Banking Corporation", image: "cheque-generic.jpg" },
+      bisb: { label: "Bahrain Islamic Bank", image: "cheque-generic.jpg" },
+      bdb: { label: "Bahrain Development Bank", image: "cheque-generic.jpg" },
+      cbb: { label: "Central Bank of Bahrain", image: "cheque-generic.jpg" },
+      gib: { label: "Gulf International Bank", image: "cheque-generic.jpg" },
+      hsbc_bh: { label: "HSBC Bank Middle East", image: "cheque-generic.jpg" },
     };
 
     function getInitialBankCode() {
       try {
         const fromQuery = URL_PARAMS.get("bank");
-        if (fromQuery && BANK_TEMPLATES[fromQuery]) {
-          return fromQuery;
-        }
+        if (fromQuery && BANK_TEMPLATES[fromQuery]) return fromQuery;
       } catch (e) {}
       return "bbk";
     }
@@ -839,10 +890,7 @@
       const img = document.getElementById("temp_img");
       const title = document.getElementById("cheque_title");
 
-      /* HEADING: keep fixed "Write Cheque" – do NOT append bank name */
-      if (title) {
-        title.textContent = "Write Cheque";
-      }
+      if (title) title.textContent = "Write Cheque";
 
       if (img && cfgMap && cfgMap.image) {
         img.onload = function () {
@@ -884,6 +932,7 @@
       set("cfg_scale", cfg.scale);
       set("cfg_rotate", cfg.rotate);
     }
+
     function loadCalibration() {
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
@@ -894,6 +943,7 @@
         return { ...DEFAULT_CFG };
       }
     }
+
     function saveCalibration() {
       try {
         const cfg = readCfgFromInputs();
@@ -902,8 +952,7 @@
     }
 
     function readCfgFromInputs() {
-      const gv = (id) =>
-        Number(document.getElementById(id)?.value || 0);
+      const gv = (id) => Number(document.getElementById(id)?.value || 0);
       return {
         name_x: gv("cfg_name_x"),
         name_y: gv("cfg_name_y"),
@@ -923,14 +972,8 @@
         gap_mon: gv("cfg_gap_mon"),
         gap_year: gv("cfg_gap_year"),
         date_font: gv("cfg_date_font"),
-        scale: Number(
-          document.getElementById("cfg_scale")?.value ||
-            DEFAULT_CFG.scale
-        ),
-        rotate: Number(
-          document.getElementById("cfg_rotate")?.value ||
-            DEFAULT_CFG.rotate
-        ),
+        scale: Number(document.getElementById("cfg_scale")?.value || DEFAULT_CFG.scale),
+        rotate: Number(document.getElementById("cfg_rotate")?.value || DEFAULT_CFG.rotate),
       };
     }
 
@@ -946,43 +989,35 @@
         cur += ctx.measureText(ch).width + trackingPx;
       }
     }
+
     function draw_canvas_with_cfg(cfg) {
       var cb = document.getElementById("cheque_img_back");
       var c = document.getElementById("cheque_img");
       var img = document.getElementById("temp_img");
 
-      if (!img || !img.complete || img.naturalWidth === 0) {
-        return;
-      }
+      if (!img || !img.complete || img.naturalWidth === 0) return;
+
+      const imgH = img.naturalHeight || img.height;
 
       var ctx = c.getContext("2d");
       var ctx_b = cb.getContext("2d");
+
       ctx.canvas.width = 650;
-      ctx.canvas.height = img.height;
+      ctx.canvas.height = imgH;
+
+      ctx_b.canvas.width = 650;
+      ctx_b.canvas.height = imgH;
+
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.scale(cfg.scale, cfg.scale);
-      ctx_b.canvas.width = 650;
-      ctx_b.canvas.height = img.height;
+
       ctx_b.setTransform(1, 0, 0, 1, 0, 0);
       ctx_b.scale(cfg.scale, cfg.scale);
+
       ctx.clearRect(0, 0, c.width, c.height);
       ctx_b.clearRect(0, 0, cb.width, cb.height);
-      ctx_b.drawImage(img, 0, 0);
-    }
 
-    function draw_canvas() {
-      var cb = document.getElementById("cheque_img_back");
-      var c = document.getElementById("cheque_img");
-      var img = document.getElementById("temp_img");
-      img.crossOrigin = "Anonymous";
-      var ctx = c.getContext("2d");
-      var ctx_b = cb.getContext("2d");
-      ctx.canvas.width = 650;
-      ctx.canvas.height = img.height;
-      ctx.scale(1.16, 1.16);
-      ctx_b.canvas.width = 650;
-      ctx_b.canvas.height = img.height;
-      ctx_b.scale(1.16, 1.16);
+      // background must be on BACK canvas (preview only)
       ctx_b.drawImage(img, 0, 0);
     }
 
@@ -995,6 +1030,53 @@
         return false;
       }
       return true;
+    }
+
+    /* ===== TEXT-ONLY EXPORT (client physical cheque printing) ===== */
+    function getPrintOnlyCanvas() {
+      const fg = document.getElementById("cheque_img");
+      if (!fg) return null;
+
+      const tmp = document.createElement("canvas");
+      tmp.width = fg.width;
+      tmp.height = fg.height;
+
+      const tctx = tmp.getContext("2d");
+      tctx.clearRect(0, 0, tmp.width, tmp.height);
+
+      // IMPORTANT: only draw foreground text (NO template background)
+      tctx.drawImage(fg, 0, 0);
+      return tmp;
+    }
+
+    /* ========= PDF helpers ========= */
+    function pxToPt(px) { return px * 72 / 96; }
+
+    function normalizeRotateDeg(deg) {
+      const n = Number(deg || 0);
+      const r = ((n % 360) + 360) % 360;
+      return r;
+    }
+
+    function makePdfFromImageDataUrl(imageDataUrl, wPx, hPx, rotateDeg, cb) {
+      const rot = normalizeRotateDeg(rotateDeg);
+      const swap = (rot === 90 || rot === 270);
+
+      const pageWpt = pxToPt(swap ? hPx : wPx);
+      const pageHpt = pxToPt(swap ? wPx : hPx);
+      const orientation = pageWpt >= pageHpt ? "l" : "p";
+
+      const pdf = new jsPDF(orientation, "pt", [pageWpt, pageHpt]);
+
+      if (rot !== 0) {
+        rotate(imageDataUrl, rot, function (rotatedBase64) {
+          pdf.addImage(rotatedBase64, "PNG", 0, 0, pageWpt, pageHpt);
+          cb(pdf);
+        });
+      } else {
+        pdf.addImage(imageDataUrl, "PNG", 0, 0, pageWpt, pageHpt);
+        cb(pdf);
+      }
     }
 
     /* ========= LOAD EXISTING CHEQUE WHEN COMING FROM VIEW/PRINT ========= */
@@ -1025,10 +1107,8 @@
         const nameInput = document.getElementById("ch_name");
         const dateInput = document.getElementById("ch_date");
         const amountInput = document.getElementById("ch_amount");
-        const companyInput = document.getElementById("company");
         const bankSelect = document.getElementById("bank_select");
 
-        // Determine bank code
         const bankCodeFromApi =
           data.bankCode ||
           (function () {
@@ -1066,23 +1146,9 @@
               : data.chequeAmount != null
               ? data.chequeAmount
               : data.value;
-          if (amt != null) {
-            amountInput.value = amt;
-          }
+          if (amt != null) amountInput.value = amt;
         }
 
-        if (companyInput) {
-          if (data.company) {
-            companyInput.value = data.company;
-          } else if (data.notes) {
-            const m = String(data.notes).match(/Company:\s*(.*)/i);
-            if (m && m[1]) {
-              companyInput.value = m[1];
-            }
-          }
-        }
-
-        // After filling fields, draw cheque preview if fields complete
         if (
           nameInput &&
           dateInput &&
@@ -1096,6 +1162,149 @@
       } catch (err) {
         console.error("Error loading cheque details", err);
       }
+    }
+
+    /* ================= Beneficiaries (NEW) ================= */
+    let BENEFICIARIES_CACHE = null;
+    let SELECTED_BENEFICIARY = null;
+
+    function openBeneficiaryModal() {
+      const modal = document.getElementById("beneficiary_modal");
+      if (modal) modal.style.display = "flex";
+    }
+    function closeBeneficiaryModal() {
+      const modal = document.getElementById("beneficiary_modal");
+      if (modal) modal.style.display = "none";
+    }
+
+    function normalizeBeneficiaries(raw) {
+      if (!raw) return [];
+      if (Array.isArray(raw)) return raw;
+      if (Array.isArray(raw.items)) return raw.items;
+      if (Array.isArray(raw.data)) return raw.data;
+      if (raw.results && Array.isArray(raw.results)) return raw.results;
+      return [];
+    }
+
+    function getBeneficiaryDisplay(b) {
+      const name =
+        b.name ||
+        b.beneficiaryName ||
+        b.fullName ||
+        b.title ||
+        b.payeeName ||
+        "";
+      const meta =
+        b.mobile ||
+        b.phone ||
+        b.accountNumber ||
+        b.iban ||
+        b.email ||
+        "";
+      const id = b.id || b._id || b.beneficiaryId || b.uuid || null;
+      return {
+        id,
+        name: String(name || "").trim(),
+        meta: String(meta || "").trim(),
+        raw: b
+      };
+    }
+
+    function renderBeneficiaries(list, filterText) {
+      const holder = document.getElementById("beneficiary_list");
+      if (!holder) return;
+
+      const term = (filterText || "").toLowerCase().trim();
+      const items = (list || [])
+        .map((b) => getBeneficiaryDisplay(b))
+        .filter((x) => x.name && (!term || x.name.toLowerCase().includes(term) || x.meta.toLowerCase().includes(term)));
+
+      holder.innerHTML = "";
+
+      if (!items.length) {
+        const empty = document.createElement("div");
+        empty.className = "modal-empty";
+        empty.textContent = "No beneficiaries found.";
+        holder.appendChild(empty);
+        return;
+      }
+
+      items.forEach((x) => {
+        const row = document.createElement("div");
+        row.className = "modal-item";
+
+        const left = document.createElement("div");
+        left.className = "name";
+        left.textContent = x.name;
+
+        const right = document.createElement("div");
+        right.className = "meta";
+        right.textContent = x.meta || "Select";
+
+        row.appendChild(left);
+        row.appendChild(right);
+
+        row.addEventListener("click", () => {
+          SELECTED_BENEFICIARY = x;
+
+          const nameInput = document.getElementById("ch_name");
+          if (nameInput) {
+            nameInput.value = x.name.toUpperCase();
+            if (
+              jQuery("#ch_name").val().length > 0 &&
+              jQuery("#ch_date").val().length > 2 &&
+              jQuery("#ch_amount").val().length > 0
+            ) {
+              jQuery("button#populate").click();
+            }
+          }
+          closeBeneficiaryModal();
+        });
+
+        holder.appendChild(row);
+      });
+    }
+
+    async function fetchWithFallback(urls, options) {
+      let lastErr = null;
+      for (const u of urls) {
+        try {
+          const res = await fetch(u, options);
+          if (res.ok) return res;
+          lastErr = new Error(`HTTP ${res.status} for ${u}`);
+        } catch (e) {
+          lastErr = e;
+        }
+      }
+      throw lastErr || new Error("All beneficiary endpoints failed");
+    }
+
+    async function fetchBeneficiaries() {
+      if (BENEFICIARIES_CACHE) return BENEFICIARIES_CACHE;
+
+      const headers = { "Content-Type": "application/json" };
+      const token = findJwtToken();
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+        headers["x-auth-token"] = token;
+      }
+
+      const endpoints = [
+        `${API_BASE}/beneficiaries`,
+        `${API_BASE}/beneficiary`,
+        `${API_BASE}/payees`,
+        `${API_BASE}/cheque-beneficiaries`,
+      ];
+
+      const res = await fetchWithFallback(endpoints, {
+        method: "GET",
+        headers,
+        credentials: "include",
+      });
+
+      const data = await res.json();
+      BENEFICIARIES_CACHE = normalizeBeneficiaries(data);
+      return BENEFICIARIES_CACHE;
     }
 
     /* ======== WAIT FOR IMAGE + BANK SELECTION ======== */
@@ -1120,20 +1329,15 @@
 
       applyBankTemplate(initialBank);
 
-      // If opened from View / Print (existing cheque), load its data
       if (CHEQUE_ID && MODE !== "new") {
         loadExistingCheque();
       }
 
-      // Hide Save button when not in "new" mode (view / print from list)
       if (IS_VIEW_MODE) {
         const saveBtn = document.getElementById("save_cheque");
-        if (saveBtn) {
-          saveBtn.style.display = "none";
-        }
+        if (saveBtn) saveBtn.style.display = "none";
       }
 
-      // Disable print/download/share buttons for unapproved cheques
       if (!IS_APPROVED) {
         const dl = document.getElementById("download");
         const pr = document.getElementById("print");
@@ -1142,6 +1346,42 @@
         if (pr) pr.disabled = true;
         if (sh) sh.disabled = true;
       }
+
+      const openBtn = document.getElementById("select_beneficiary");
+      const closeBtn = document.getElementById("beneficiary_close");
+      const modal = document.getElementById("beneficiary_modal");
+      const search = document.getElementById("beneficiary_search");
+
+      if (openBtn) {
+        openBtn.addEventListener("click", async () => {
+          try {
+            openBeneficiaryModal();
+            if (search) search.value = "";
+            const list = await fetchBeneficiaries();
+            renderBeneficiaries(list, "");
+            if (search) search.focus();
+          } catch (e) {
+            console.error(e);
+            alert("Unable to load beneficiaries. Please check API / login.");
+            closeBeneficiaryModal();
+          }
+        });
+      }
+      if (closeBtn) closeBtn.addEventListener("click", closeBeneficiaryModal);
+      if (modal) {
+        modal.addEventListener("click", (ev) => {
+          if (ev.target === modal) closeBeneficiaryModal();
+        });
+      }
+      if (search) {
+        search.addEventListener("input", () => {
+          const list = BENEFICIARIES_CACHE || [];
+          renderBeneficiaries(list, search.value);
+        });
+      }
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") closeBeneficiaryModal();
+      });
     });
 
     /* ================= BHD to words =================== */
@@ -1267,20 +1507,13 @@
 
         var c = document.getElementById("cheque_img");
         var ctx = c.getContext("2d");
+        ctx.clearRect(0, 0, c.width, c.height);
         ctx.fillStyle = "#000";
 
-        // NAME (Payee)
         let ch_name = jQuery("#ch_name").val().toUpperCase();
         ctx.font = `${cfg.name_font}px Arial`;
-        fillTextWithTracking(
-          ctx,
-          ch_name,
-          cfg.name_x,
-          cfg.name_y,
-          cfg.name_track
-        );
+        fillTextWithTracking(ctx, ch_name, cfg.name_x, cfg.name_y, cfg.name_track);
 
-        // AMOUNT numeric + words
         let amnt = jQuery("#ch_amount").val();
         let amnt_arr = amnt.split(".");
         var ch_amount = "**" + bhd(amnt_arr[0]);
@@ -1290,24 +1523,17 @@
             let fils = bhd(amnt_arr[1]);
             ch_amount = ch_amount + " And Fils " + fils + " Only**";
           } else {
-            alert(
-              "you can only add maximum three decimal palces for fills"
-            );
+            alert("you can only add maximum three decimal palces for fills");
             return;
           }
           ctx.font = `${cfg.num_font}px Arial`;
-          ctx.fillText(
-            "**" + amnt_arr[0] + "/" + amnt_arr[1] + "**",
-            cfg.num_x,
-            cfg.num_y
-          );
+          ctx.fillText("**" + amnt_arr[0] + "/" + amnt_arr[1] + "**", cfg.num_x, cfg.num_y);
         } else {
           ch_amount += " Only**";
           ctx.font = `${cfg.num_font}px Arial`;
           ctx.fillText(amnt + "/-", cfg.num_x, cfg.num_y);
         }
 
-        // Amount in words (wrapping with tracking)
         ctx.font = `${cfg.words_font}px Arial`;
         let x = cfg.words_x;
         let y = cfg.words_y;
@@ -1316,79 +1542,31 @@
           let str_2 = ch_amount.substring(line_length, ch_amount.length);
           let str_3 = str_2.substring(0, line_length2);
           let str_4 = str_2.substring(line_length2, str_2.length);
-          fillTextWithTracking(
-            ctx,
-            str_1,
-            x,
-            y,
-            cfg.words_track
-          );
-          fillTextWithTracking(
-            ctx,
-            str_3,
-            30,
-            y + cfg.words_gap,
-            cfg.words_track
-          );
-          fillTextWithTracking(
-            ctx,
-            str_4,
-            30,
-            y + cfg.words_gap * 2,
-            cfg.words_track
-          );
+          fillTextWithTracking(ctx, str_1, x, y, cfg.words_track);
+          fillTextWithTracking(ctx, str_3, 30, y + cfg.words_gap, cfg.words_track);
+          fillTextWithTracking(ctx, str_4, 30, y + cfg.words_gap * 2, cfg.words_track);
         } else {
-          fillTextWithTracking(
-            ctx,
-            ch_amount,
-            x,
-            y,
-            cfg.words_track
-          );
+          fillTextWithTracking(ctx, ch_amount, x, y, cfg.words_track);
         }
 
-        // DATE digits (adjustable)
         ctx.font = `${cfg.date_font}px Arial`;
         let ch_date = jQuery("#ch_date").val();
         let ch_date_ar_arr = ch_date.split("-"); // [yyyy, mm, dd]
 
-        const baseX = cfg.date_x,
-          baseY = cfg.date_y;
-        // day
+        const baseX = cfg.date_x, baseY = cfg.date_y;
         ctx.fillText(ch_date_ar_arr[2][0], baseX, baseY);
-        ctx.fillText(
-          ch_date_ar_arr[2][1],
-          baseX + cfg.gap_day,
-          baseY
-        );
-        // month
+        ctx.fillText(ch_date_ar_arr[2][1], baseX + cfg.gap_day, baseY);
+
         const monBase = baseX + cfg.gap_day + cfg.gap_mon;
         ctx.fillText(ch_date_ar_arr[1][0], monBase, baseY);
-        ctx.fillText(
-          ch_date_ar_arr[1][1],
-          monBase + cfg.gap_mon,
-          baseY
-        );
-        // year
+        ctx.fillText(ch_date_ar_arr[1][1], monBase + cfg.gap_mon, baseY);
+
         const yearBase = monBase + cfg.gap_mon + cfg.gap_year;
         ctx.fillText(ch_date_ar_arr[0][0], yearBase, baseY);
-        ctx.fillText(
-          ch_date_ar_arr[0][1],
-          yearBase + cfg.gap_year,
-          baseY
-        );
-        ctx.fillText(
-          ch_date_ar_arr[0][2],
-          yearBase + cfg.gap_year * 2,
-          baseY
-        );
-        ctx.fillText(
-          ch_date_ar_arr[0][3],
-          yearBase + cfg.gap_year * 3,
-          baseY
-        );
+        ctx.fillText(ch_date_ar_arr[0][1], yearBase + cfg.gap_year, baseY);
+        ctx.fillText(ch_date_ar_arr[0][2], yearBase + cfg.gap_year * 2, baseY);
+        ctx.fillText(ch_date_ar_arr[0][3], yearBase + cfg.gap_year * 3, baseY);
 
-        // persist latest calibrated values
         saveCalibration();
       } else {
         alert("Please Fill All the Details");
@@ -1398,11 +1576,8 @@
     function showTextbox() {
       var checkbox = document.getElementById("checkbox");
       var textbox = $(".settings");
-      if (checkbox.checked) {
-        textbox.slideDown();
-      } else {
-        textbox.slideUp();
-      }
+      if (checkbox.checked) textbox.slideDown();
+      else textbox.slideUp();
     }
 
     function rotate(srcBase64, degrees, callback) {
@@ -1411,17 +1586,11 @@
       const image = new Image();
       image.crossOrigin = "anonymous";
       image.onload = function () {
-        canvas.width =
-          degrees % 180 === 0 ? image.width : image.height;
-        canvas.height =
-          degrees % 180 === 0 ? image.height : image.width;
+        canvas.width = degrees % 180 === 0 ? image.width : image.height;
+        canvas.height = degrees % 180 === 0 ? image.height : image.width;
         ctx.translate(canvas.width / 2, canvas.height / 2);
         ctx.rotate((degrees * Math.PI) / 180);
-        ctx.drawImage(
-          image,
-          image.width / -2,
-          image.height / -2
-        );
+        ctx.drawImage(image, image.width / -2, image.height / -2);
         callback(canvas.toDataURL());
       };
       image.src = srcBase64;
@@ -1429,49 +1598,28 @@
 
     /* ================== SAVE CHEQUE (send to backend) ================== */
     async function saveCheque() {
-      // basic validation
-      if (
-        !jQuery("#ch_name").val() ||
-        !jQuery("#ch_date").val() ||
-        !jQuery("#ch_amount").val()
-      ) {
-        alert(
-          "Please fill all the fields (Name, Date, Amount) before saving."
-        );
+      if (!jQuery("#ch_name").val() || !jQuery("#ch_date").val() || !jQuery("#ch_amount").val()) {
+        alert("Please fill all the fields (Name, Date, Amount) before saving.");
         return;
       }
 
-      // draw cheque so preview image is proper
       jQuery("#populate").click();
 
       const name = document.getElementById("ch_name").value;
       const date = document.getElementById("ch_date").value;
-      const amount = parseFloat(
-        document.getElementById("ch_amount").value
-      );
-      const company = document.getElementById("company").value || "";
+      const amount = parseFloat(document.getElementById("ch_amount").value);
       const bankCode = document.getElementById("bank_select").value;
       const bankCfg = BANK_TEMPLATES[bankCode] || {};
       const bankName = bankCfg.label || bankCode;
 
-      const canvas = document.getElementById("cheque_img");
-      let preview = null;
-      try {
-        preview = canvas.toDataURL("image/png", 0.8);
-      } catch (e) {
-        preview = null;
-      }
-
-      // generate simple cheque number so backend requirement is satisfied
-      const chequeNumber =
-        CHEQUE_ID ||
-        `CHQ-${bankCode.toUpperCase()}-${Date.now()}`;
-
+      const chequeNumber = CHEQUE_ID || `CHQ-${bankCode.toUpperCase()}-${Date.now()}`;
       const amountIntPart = String(amount).split(".")[0] || "0";
 
+      const beneficiaryId = SELECTED_BENEFICIARY && SELECTED_BENEFICIARY.id ? SELECTED_BENEFICIARY.id : null;
+
       const payload = {
-        bankName, // required
-        bankCode, // extra info
+        bankName,
+        bankCode,
         accountNumber: "",
         chequeNumber,
         date,
@@ -1479,16 +1627,14 @@
         amount: amount,
         amountWords: bhd(amountIntPart),
         beneficiaryName: name,
+        beneficiaryId: beneficiaryId,
         hideBeneficiary: false,
-        notes: company ? "Company: " + company : "",
-        previewImage: preview, // backend will ignore if not used
+        notes: "",
+        previewImage: null, // keep null or handle separately if you want
       };
 
       try {
         const url = `${API_BASE}/cheques`;
-        const method = "POST";
-
-        // build headers and attach JWT if present
         const headers = { "Content-Type": "application/json" };
         const token = findJwtToken();
         if (token) {
@@ -1497,21 +1643,17 @@
         }
 
         const res = await fetch(url, {
-          method,
+          method: "POST",
           headers,
           body: JSON.stringify(payload),
-          credentials: "include", // send cookie as well
+          credentials: "include",
         });
 
         if (!res.ok) {
           let msg = "Error saving cheque. ";
           try {
             const errJson = await res.json();
-            if (errJson && errJson.message) {
-              msg += errJson.message;
-            } else {
-              msg += "Please check backend route.";
-            }
+            msg += (errJson && errJson.message) ? errJson.message : "Please check backend route.";
           } catch (e) {
             msg += "Please check backend route.";
           }
@@ -1520,168 +1662,117 @@
         }
 
         let data = {};
-        try {
-          data = await res.json();
-        } catch (e) {
-          data = {};
-        }
+        try { data = await res.json(); } catch (e) { data = {}; }
 
         const savedId = data.id || CHEQUE_ID || data._id || null;
 
-        alert(
-          "Cheque saved and sent for approval.\nYou can approve it from the Approvals menu."
-        );
+        alert("Cheque saved and sent for approval.\nYou can approve it from the Approvals menu.");
 
-        // Tell parent React app (optional)
         if (window.parent && window.parent !== window) {
           window.parent.postMessage(
-            {
-              type: "CHEQUE_SAVED",
-              chequeId: savedId,
-              status: data.status || "Draft",
-            },
+            { type: "CHEQUE_SAVED", chequeId: savedId, status: data.status || "Draft" },
             "*"
           );
         }
       } catch (err) {
         console.error(err);
-        alert(
-          "Error connecting to server while saving cheque. Please check that the API is running."
-        );
+        alert("Error connecting to server while saving cheque. Please check that the API is running.");
       }
     }
 
-    /* bind save button */
-    document
-      .getElementById("save_cheque")
-      .addEventListener("click", function () {
-        saveCheque();
-      });
+    document.getElementById("save_cheque").addEventListener("click", function () {
+      saveCheque();
+    });
 
-    /* ================== SHARE / DOWNLOAD / PRINT (blocked if not approved) ================== */
-    const shareBtn = document.getElementById("share");
-    if (shareBtn) {
-      shareBtn.addEventListener("click", async () => {
-        if (!canPrintOrDownload()) return;
+    /* ================== SHARE / DOWNLOAD / PRINT (FIXED: NO ROTATE + TEXT ONLY) ================== */
+    async function exportChequeAsPdf(callback) {
+      if (!canPrintOrDownload()) return;
 
-        jQuery("#populate").click();
-        if (
-          jQuery("#ch_name").val().length > 0 &&
-          jQuery("#ch_date").val().length > 2 &&
-          jQuery("#ch_amount").val().length > 0
-        ) {
-          var canvas = document.getElementById("cheque_img");
-          var imgData = canvas.toDataURL("image/png", 1.0);
-          const cfg = readCfgFromInputs();
-          var pdf = new jsPDF();
-          rotate(imgData, cfg.rotate, function (resultBase64) {
-            pdf.addImage(resultBase64, "png", 78.5, 0);
-            let pdf_output = pdf.output("blob");
-            var file = new File([pdf_output], "cheque.pdf", {
-              type: "application/pdf",
-            });
-            var filesArray = [file];
-            var fname =
-              "From: " +
-              jQuery("#company").val() +
-              "\n To: " +
-              jQuery("input#ch_name").val();
-            if (
-              navigator.canShare &&
-              navigator.canShare({ files: filesArray })
-            ) {
-              navigator.share({
-                text: fname,
-                files: filesArray,
-                title: "Cheque",
-                url: "",
-              });
-            }
-          });
-        }
-      });
-    }
+      jQuery("#populate").click();
 
-    const downloadBtn = document.getElementById("download");
-    if (downloadBtn) {
-      downloadBtn.addEventListener(
-        "click",
-        function () {
-          if (!canPrintOrDownload()) return;
-
-          jQuery("#populate").click();
-          if (
-            jQuery("#ch_name").val().length > 0 &&
-            jQuery("#ch_date").val().length > 2 &&
-            jQuery("#ch_amount").val().length > 0
-          ) {
-            var canvas = document.getElementById("cheque_img");
-            let fname =
-              jQuery("#company").val() +
-              "_" +
-              jQuery("input#ch_name").val();
-            var imgData = canvas.toDataURL("image/png", 1.0);
-            const cfg = readCfgFromInputs();
-            rotate(imgData, cfg.rotate, function (resultBase64) {
-              var pdf = new jsPDF();
-              pdf.addImage(resultBase64, "png", 78.5, 0);
-              pdf.save(fname.replace(" ", "_") + "_cheque.pdf");
-            });
-          }
-        },
-        false
-      );
-    }
-
-    const printBtn = document.getElementById("print");
-    if (printBtn) {
-      printBtn.addEventListener(
-        "click",
-        function () {
-          if (!canPrintOrDownload()) return;
-
-          jQuery("#populate").click();
-          if (
-            jQuery("#ch_name").val().length > 0 &&
-            jQuery("#ch_date").val().length > 2 &&
-            jQuery("#ch_amount").val().length > 0
-          ) {
-            var canvas = document.getElementById("cheque_img");
-            var imgData = canvas.toDataURL("image/png", 1.0);
-            const cfg = readCfgFromInputs();
-            var pdf = new jsPDF();
-            rotate(imgData, cfg.rotate, function (resultBase64) {
-              pdf.addImage(resultBase64, "png", 78, 0);
-              printJS(pdf.output("bloburl"));
-            });
-          }
-        },
-        false
-      );
-    }
-
-    /* Live preview + persist on calibration changes */
-    jQuery(
-      "#ch_amount,#ch_name,#ch_date,.line_length,.line_length2," +
-        "#cfg_name_x,#cfg_name_y,#cfg_name_font,#cfg_name_track," +
-        "#cfg_words_x,#cfg_words_y,#cfg_words_gap,#cfg_words_font,#cfg_words_track," +
-        "#cfg_num_x,#cfg_num_y,#cfg_num_font," +
-        "#cfg_date_x,#cfg_date_y,#cfg_gap_day,#cfg_gap_mon,#cfg_gap_year,#cfg_date_font," +
-        "#cfg_scale,#cfg_rotate"
-    ).on("change input", function () {
-      saveCalibration();
       if (
         jQuery("#ch_name").val().length > 0 &&
         jQuery("#ch_date").val().length > 2 &&
         jQuery("#ch_amount").val().length > 0
       ) {
+        const printCanvas = getPrintOnlyCanvas();
+        if (!printCanvas) {
+          alert("Unable to export cheque print canvas.");
+          return;
+        }
+
+        const dataUrl = printCanvas.toDataURL("image/png", 1.0);
+
+        // IMPORTANT: export must NOT rotate (rotate breaks date boxes)
+        makePdfFromImageDataUrl(
+          dataUrl,
+          printCanvas.width,
+          printCanvas.height,
+          0, // FORCE ROTATE 0
+          function (pdf) {
+            callback(pdf);
+          }
+        );
+      } else {
+        alert("Please Fill All the Details");
+      }
+    }
+
+    const shareBtn = document.getElementById("share");
+    if (shareBtn) {
+      shareBtn.addEventListener("click", async () => {
+        exportChequeAsPdf(async (pdf) => {
+          const blob = pdf.output("blob");
+          const file = new File([blob], "cheque.pdf", { type: "application/pdf" });
+          const filesArray = [file];
+          const fname = "To: " + (jQuery("input#ch_name").val() || "");
+
+          if (navigator.canShare && navigator.canShare({ files: filesArray })) {
+            navigator.share({ text: fname, files: filesArray, title: "Cheque" });
+          } else {
+            alert("Share is not supported on this browser/device.");
+          }
+        });
+      });
+    }
+
+    const downloadBtn = document.getElementById("download");
+    if (downloadBtn) {
+      downloadBtn.addEventListener("click", function () {
+        exportChequeAsPdf((pdf) => {
+          let fname = (jQuery("input#ch_name").val() || "cheque")
+            .replace(/\s+/g, "_");
+          pdf.save(fname + "_cheque.pdf");
+        });
+      }, false);
+    }
+
+    const printBtn = document.getElementById("print");
+    if (printBtn) {
+      printBtn.addEventListener("click", function () {
+        exportChequeAsPdf((pdf) => {
+          printJS(pdf.output("bloburl"));
+        });
+      }, false);
+    }
+
+    /* Live preview + persist on calibration changes */
+    jQuery(
+      "#ch_amount,#ch_name,#ch_date,.line_length,.line_length2," +
+      "#cfg_name_x,#cfg_name_y,#cfg_name_font,#cfg_name_track," +
+      "#cfg_words_x,#cfg_words_y,#cfg_words_gap,#cfg_words_font,#cfg_words_track," +
+      "#cfg_num_x,#cfg_num_y,#cfg_num_font," +
+      "#cfg_date_x,#cfg_date_y,#cfg_gap_day,#cfg_gap_mon,#cfg_gap_year,#cfg_date_font," +
+      "#cfg_scale,#cfg_rotate"
+    ).on("change input", function () {
+      saveCalibration();
+      if (jQuery("#ch_name").val().length > 0 && jQuery("#ch_date").val().length > 2 && jQuery("#ch_amount").val().length > 0) {
         jQuery("button#populate").click();
       } else {
         draw_canvas_with_cfg(readCfgFromInputs());
       }
     });
 
-    /* includeHTML loader (if you add header/footer later) */
     function includeHTML() {
       const elements = document.querySelectorAll("[include-html]");
       elements.forEach((el) => {
@@ -1691,14 +1782,9 @@
             if (!res.ok) throw new Error("Include failed");
             return res.text();
           })
-          .then((html) => {
-            el.innerHTML = html;
-          })
+          .then((html) => { el.innerHTML = html; })
           .catch(() => {
-            el.innerHTML =
-              "<p style='color:red;text-align:center;'>Error loading component: " +
-              file +
-              "</p>";
+            el.innerHTML = "<p style='color:red;text-align:center;'>Error loading component: " + file + "</p>";
           });
       });
     }

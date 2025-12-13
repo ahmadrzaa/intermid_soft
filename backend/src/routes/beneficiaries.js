@@ -1,12 +1,13 @@
 // backend/src/routes/beneficiaries.js
 // Simple JSON-based Beneficiaries master list
-// Matches client spec: add/edit/delete beneficiaries + flag to hide name
-// on printed cheque (for regular suppliers/customers).
+// Add/edit/delete beneficiaries + flag to hide name on printed cheque.
+// Extended fields: mobile, iban, accountNumber, email.
 
 import { Router } from "express";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import crypto from "crypto";
 import { requireAuth } from "../middleware/auth.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -19,28 +20,61 @@ const DB = path.join(__dirname, "..", "data", "beneficiaries.json");
 fs.mkdirSync(path.dirname(DB), { recursive: true });
 if (!fs.existsSync(DB)) fs.writeFileSync(DB, "[]", "utf8");
 
-const read = () => JSON.parse(fs.readFileSync(DB, "utf8"));
-const write = (arr) => fs.writeFileSync(DB, JSON.stringify(arr, null, 2));
+function safeRead() {
+  try {
+    const raw = fs.readFileSync(DB, "utf8");
+    const parsed = JSON.parse(raw || "[]");
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (e) {
+    // if file is corrupted, reset to empty
+    try {
+      fs.writeFileSync(DB, "[]", "utf8");
+    } catch (_) {}
+    return [];
+  }
+}
+
+function write(arr) {
+  fs.writeFileSync(DB, JSON.stringify(arr, null, 2), "utf8");
+}
+
+function s(v) {
+  if (v === undefined || v === null) return "";
+  return String(v).trim();
+}
+
+function normalizeEmail(v) {
+  const val = s(v);
+  return val ? val.toLowerCase() : "";
+}
 
 /**
  * GET /api/beneficiaries
  * Optional: ?q=search&limit=20
+ * Returns: array
  */
 r.get("/", requireAuth, (req, res) => {
-  const all = read();
+  const all = safeRead();
   let rows = all;
 
-  const q = (req.query.q || "").toString().trim().toLowerCase();
+  const q = s(req.query.q).toLowerCase();
   if (q) {
     rows = rows.filter((b) => {
-      const name = (b.name || "").toLowerCase();
-      const alias = (b.alias || "").toLowerCase();
-      const notes = (b.notes || "").toLowerCase();
-      return (
-        name.includes(q) ||
-        alias.includes(q) ||
-        notes.includes(q)
-      );
+      const hay = [
+        b.name,
+        b.alias,
+        b.notes,
+        b.mobile,
+        b.phone,
+        b.iban,
+        b.accountNumber,
+        b.email,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
+      return hay.includes(q);
     });
   }
 
@@ -51,18 +85,51 @@ r.get("/", requireAuth, (req, res) => {
 });
 
 /**
+ * GET /api/beneficiaries/:id
+ */
+r.get("/:id", requireAuth, (req, res) => {
+  const { id } = req.params;
+  const all = safeRead();
+  const found = all.find((b) => String(b.id) === String(id));
+  if (!found) return res.status(404).json({ message: "Not found" });
+  return res.json(found);
+});
+
+/**
  * POST /api/beneficiaries
- * Body: { name, alias?, hideByDefault?, notes? }
+ * Body:
+ * {
+ *   name,
+ *   alias?,
+ *   hideByDefault?,
+ *   notes?,
+ *   mobile? (or phone?),
+ *   iban?,
+ *   accountNumber?,
+ *   email?
+ * }
  */
 r.post("/", requireAuth, (req, res) => {
-  const { name, alias = "", hideByDefault = false, notes = "" } =
-    req.body || {};
-  if (!name || !name.toString().trim()) {
+  const body = req.body || {};
+
+  const name = s(body.name);
+  if (!name) {
     return res.status(400).json({ message: "Name is required" });
   }
 
-  const all = read();
-  const normalizedName = name.toString().trim();
+  const alias = s(body.alias);
+  const notes = s(body.notes);
+
+  // accept either mobile or phone from frontend
+  const mobile = s(body.mobile || body.phone);
+  const iban = s(body.iban);
+  const accountNumber = s(body.accountNumber);
+  const email = normalizeEmail(body.email);
+
+  const hideByDefault = !!body.hideByDefault;
+
+  const all = safeRead();
+  const normalizedName = name;
 
   // prevent duplicate name (case-insensitive)
   const exists = all.some(
@@ -73,14 +140,23 @@ r.post("/", requireAuth, (req, res) => {
   }
 
   const now = new Date().toISOString();
-  const id = Date.now().toString(36);
+  const id = crypto.randomUUID
+    ? crypto.randomUUID()
+    : Date.now().toString(36) + Math.random().toString(36).slice(2);
 
   const record = {
     id,
     name: normalizedName,
-    alias: alias ? alias.toString().trim() : "",
-    hideByDefault: !!hideByDefault, // when true → default “keep name hidden on cheque”
-    notes: notes ? notes.toString().trim() : "",
+    alias,
+    hideByDefault, // true => default “keep name hidden on cheque”
+    notes,
+
+    // NEW FIELDS
+    mobile,
+    iban,
+    accountNumber,
+    email,
+
     createdAt: now,
     updatedAt: now,
     createdBy: {
@@ -98,26 +174,27 @@ r.post("/", requireAuth, (req, res) => {
 
 /**
  * PUT /api/beneficiaries/:id
- * Body: { name?, alias?, hideByDefault?, notes? }
+ * Body: { name?, alias?, hideByDefault?, notes?, mobile?, phone?, iban?, accountNumber?, email? }
  */
 r.put("/:id", requireAuth, (req, res) => {
   const { id } = req.params;
-  const all = read();
-  const idx = all.findIndex((b) => b.id === id);
+  const all = safeRead();
+  const idx = all.findIndex((b) => String(b.id) === String(id));
   if (idx < 0) return res.status(404).json({ message: "Not found" });
 
   const existing = all[idx];
-  const { name, alias, hideByDefault, notes } = req.body || {};
+  const body = req.body || {};
 
-  if (name !== undefined) {
-    const newName = name.toString().trim();
+  // name
+  if (body.name !== undefined) {
+    const newName = s(body.name);
     if (!newName) {
       return res.status(400).json({ message: "Name cannot be empty" });
     }
 
     const dup = all.some(
       (b) =>
-        b.id !== id &&
+        String(b.id) !== String(id) &&
         (b.name || "").toLowerCase() === newName.toLowerCase()
     );
     if (dup) {
@@ -128,16 +205,36 @@ r.put("/:id", requireAuth, (req, res) => {
     existing.name = newName;
   }
 
-  if (alias !== undefined) {
-    existing.alias = alias ? alias.toString().trim() : "";
+  // alias
+  if (body.alias !== undefined) {
+    existing.alias = s(body.alias);
   }
 
-  if (hideByDefault !== undefined) {
-    existing.hideByDefault = !!hideByDefault;
+  // hide flag
+  if (body.hideByDefault !== undefined) {
+    existing.hideByDefault = !!body.hideByDefault;
   }
 
-  if (notes !== undefined) {
-    existing.notes = notes ? notes.toString().trim() : "";
+  // notes
+  if (body.notes !== undefined) {
+    existing.notes = s(body.notes);
+  }
+
+  // NEW fields (allow clearing by sending empty string)
+  if (body.mobile !== undefined || body.phone !== undefined) {
+    existing.mobile = s(body.mobile || body.phone);
+  }
+
+  if (body.iban !== undefined) {
+    existing.iban = s(body.iban);
+  }
+
+  if (body.accountNumber !== undefined) {
+    existing.accountNumber = s(body.accountNumber);
+  }
+
+  if (body.email !== undefined) {
+    existing.email = normalizeEmail(body.email);
   }
 
   existing.updatedAt = new Date().toISOString();
@@ -152,8 +249,8 @@ r.put("/:id", requireAuth, (req, res) => {
  */
 r.delete("/:id", requireAuth, (req, res) => {
   const { id } = req.params;
-  const all = read();
-  const idx = all.findIndex((b) => b.id === id);
+  const all = safeRead();
+  const idx = all.findIndex((b) => String(b.id) === String(id));
   if (idx < 0) return res.status(404).json({ message: "Not found" });
 
   const [removed] = all.splice(idx, 1);
