@@ -473,5 +473,98 @@
     },
     "createdAt": "2025-12-13T10:15:30.749Z",
     "updatedAt": "2025-12-13T10:15:30.749Z"
+  },
+  {
+    "id": "mj5d28pp",
+    "status": "Approved",
+    "bankName": "Bank of Bahrain and Kuwait (BBK)",
+    "bankCode": "bbk",
+    "accountNumber": "",
+    "chequeNumber": "CHQ-BBK-1765694744974",
+    "date": "2025-12-14",
+    "currency": "BHD",
+    "amount": 400,
+    "amountWords": "Four Hundred",
+    "beneficiaryName": "ABDULLA",
+    "hideBeneficiary": false,
+    "notes": "",
+    "previewImage": null,
+    "createdBy": {
+      "id": "mioknfyk",
+      "name": "Admin User",
+      "email": "digital@intermid.net",
+      "role": "Admin"
+    },
+    "createdAt": "2025-12-14T06:45:44.989Z",
+    "updatedAt": "2025-12-14T06:46:12.593Z",
+    "approvedAt": "2025-12-14T06:46:12.593Z",
+    "approvedBy": {
+      "id": "mioknfyk",
+      "name": "Admin User",
+      "email": "digital@intermid.net",
+      "role": "Admin"
+    }
+  },
+  {
+    "id": "mjjn7o05",
+    "status": "Approved",
+    "bankName": "Bank of Bahrain and Kuwait (BBK)",
+    "bankCode": "bbk",
+    "accountNumber": "",
+    "chequeNumber": "CHQ-BBK-1766558320692",
+    "date": "2025-12-24",
+    "currency": "BHD",
+    "amount": 400,
+    "amountWords": "Four Hundred",
+    "beneficiaryName": "Arun bal",
+    "hideBeneficiary": false,
+    "notes": "",
+    "previewImage": null,
+    "createdBy": {
+      "id": "mioknfyk",
+      "name": "Admin User",
+      "email": "digital@intermid.net",
+      "role": "Admin"
+    },
+    "createdAt": "2025-12-24T06:38:40.709Z",
+    "updatedAt": "2025-12-24T06:39:11.606Z",
+    "approvedAt": "2025-12-24T06:39:11.606Z",
+    "approvedBy": {
+      "id": "mioknfyk",
+      "name": "Admin User",
+      "email": "digital@intermid.net",
+      "role": "Admin"
+    }
+  },
+  {
+    "id": "mjlca8ux",
+    "status": "Approved",
+    "bankName": "Bank of Bahrain and Kuwait (BBK)",
+    "bankCode": "bbk",
+    "accountNumber": "",
+    "chequeNumber": "CHQ-BBK-1766660897626",
+    "date": "2025-12-25",
+    "currency": "BHD",
+    "amount": 100,
+    "amountWords": "One Hundred",
+    "beneficiaryName": "AHMAD",
+    "hideBeneficiary": false,
+    "notes": "",
+    "previewImage": null,
+    "createdBy": {
+      "id": "mioknfyk",
+      "name": "Admin User",
+      "email": "digital@intermid.net",
+      "role": "Admin"
+    },
+    "createdAt": "2025-12-25T11:08:17.625Z",
+    "updatedAt": "2025-12-25T11:08:27.473Z",
+    "approvedAt": "2025-12-25T11:08:27.473Z",
+    "approvedBy": {
+      "id": "mioknfyk",
+      "name": "Admin User",
+      "email": "digital@intermid.net",
+      "role": "Admin"
+    }
   }
 ]

@@ -1,0 +1,28 @@
+[
+  {
+    "userId": "mioknfyk",
+    "status": "active",
+    "plan": "monthly",
+    "locked": false,
+    "reason": "Subscription active.",
+    "createdAt": "2025-12-24T11:12:30.653Z",
+    "updatedAt": "2025-12-25T10:51:51.573Z",
+    "periodEndsAt": "2026-01-24T11:12:30.657Z",
+    "graceEndsAt": "2026-01-27T11:12:30.657Z",
+    "lastPaymentSessionId": "cs_test_a1tJmmHZIqK4lVoirhDjZrPaDYscCQxjesgcCawzozFENRxiQp6FFgmFZb",
+    "lastPaymentAt": "2025-12-24T11:12:30.657Z"
+  },
+  {
+    "userId": "mjjxxewx",
+    "status": "active",
+    "plan": "monthly",
+    "locked": false,
+    "reason": "Payment confirmed.",
+    "createdAt": "2025-12-24T11:39:49.232Z",
+    "updatedAt": "2025-12-24T11:39:49.487Z",
+    "periodEndsAt": "2026-01-24T11:39:49.486Z",
+    "graceEndsAt": "2026-01-27T11:39:49.486Z",
+    "lastPaymentSessionId": "cs_test_a1ba08zSKLpSOdPAzNcuTzH984XNFMfC3pVqZ5Z2iOlVHDTtoWcJ7yjkpE",
+    "lastPaymentAt": "2025-12-24T11:39:49.486Z"
+  }
+]

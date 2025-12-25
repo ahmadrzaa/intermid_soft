@@ -1,5 +1,15 @@
 [
   {
+    "id": "4c85908b-f197-4426-ab68-737414a531d9",
+    "name": "AHMAD",
+    "alias": "RAZA",
+    "hideByDefault": false,
+    "notes": "SALARY",
+    "displayName": "AHMAD",
+    "createdAt": "2025-12-25T11:07:30.275Z",
+    "updatedAt": "2025-12-25T11:07:41.901Z"
+  },
+  {
     "id": "mj40gsxv",
     "name": "AL HILAL",
     "alias": "HOSPITAL",
@@ -67,6 +77,25 @@
     "notes": "",
     "createdAt": "2025-12-13T10:24:11.828Z",
     "updatedAt": "2025-12-13T10:24:11.828Z",
+    "createdBy": {
+      "id": "mioknfyk",
+      "name": "Admin User",
+      "email": "digital@intermid.net",
+      "role": "Admin"
+    }
+  },
+  {
+    "id": "3ef09353-7bc1-415a-b606-d9822fc9da47",
+    "name": "Abdulla",
+    "alias": "Al Hamed",
+    "hideByDefault": false,
+    "notes": "for Salary",
+    "mobile": "",
+    "iban": "",
+    "accountNumber": "",
+    "email": "",
+    "createdAt": "2025-12-14T06:45:15.355Z",
+    "updatedAt": "2025-12-14T06:45:15.355Z",
     "createdBy": {
       "id": "mioknfyk",
       "name": "Admin User",

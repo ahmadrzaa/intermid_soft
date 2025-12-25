@@ -21,6 +21,9 @@ import HistoryPage from "./pages/History";
 import SettingsPage from "./pages/Settings";
 import BBK from "./pages/Checks/BBK";
 
+/* ✅ NEW: Subscription page */
+import SubscriptionPage from "./pages/Subscription";
+
 /* Guard */
 function Private({ children }) {
   const { isAuthenticated } = useAuth();
@@ -64,6 +67,9 @@ export default function App() {
             <Route path="beneficiaries" element={<BeneficiariesPage />} />
             <Route path="history" element={<HistoryPage />} />
             <Route path="settings" element={<SettingsPage />} />
+
+            {/* ✅ NEW: Subscription / Billing */}
+            <Route path="subscription" element={<SubscriptionPage />} />
           </Route>
 
           {/* Fallback */}

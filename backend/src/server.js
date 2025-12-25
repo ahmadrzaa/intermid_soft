@@ -21,7 +21,6 @@ app.use(
 );
 
 // CORS (multiple origins allowed)
-// If FRONTEND_ORIGINS contains "*", allow all origins (credentials still require explicit origin)
 const ORIGINS = (process.env.FRONTEND_ORIGINS || "http://localhost:5173")
   .split(",")
   .map((s) => s.trim())
@@ -32,24 +31,34 @@ const allowAll = ORIGINS.includes("*");
 app.use(
   cors({
     origin: (origin, cb) => {
-      // Allow non-browser calls (no origin)
       if (!origin) return cb(null, true);
-
       if (allowAll) return cb(null, true);
-
       if (ORIGINS.includes(origin)) return cb(null, true);
-
       return cb(new Error(`CORS blocked for origin: ${origin}`), false);
     },
     credentials: true,
   })
 );
 
-app.use(express.json({ limit: "1mb" }));
+// ✅ Capture raw body ONLY for Stripe webhook
+app.use(
+  express.json({
+    limit: "1mb",
+    verify: (req, _res, buf) => {
+      if (
+        req.originalUrl &&
+        req.originalUrl.startsWith("/api/subscription/webhook")
+      ) {
+        req.rawBody = buf;
+      }
+    },
+  })
+);
+
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan("dev"));
 
-// Health
+// Health check
 app.get("/", (_req, res) =>
   res.json({
     ok: true,
@@ -59,6 +68,8 @@ app.get("/", (_req, res) =>
 );
 
 // ---- ROUTES ----
+
+// AUTH ROUTES
 let authMounted = false;
 try {
   const mod = await import("./routes/auth.js");
@@ -70,6 +81,19 @@ try {
   console.warn("Auth routes NOT loaded:", e.message);
 }
 
+// SUBSCRIPTION ROUTES
+let subscriptionMounted = false;
+try {
+  const mod = await import("./routes/subscription.js");
+  const router = mod.default || mod.router || mod;
+  app.use("/api/subscription", router);
+  console.log("Subscription routes loaded");
+  subscriptionMounted = true;
+} catch (e) {
+  console.warn("Subscription routes NOT loaded:", e.message);
+}
+
+// CHEQUES ROUTES
 let chequesMounted = false;
 try {
   const mod = await import("./routes/cheques.js");
@@ -81,6 +105,7 @@ try {
   console.warn("Cheques routes NOT loaded:", e.message);
 }
 
+// BENEFICIARIES ROUTES
 let beneficiariesMounted = false;
 try {
   const mod = await import("./routes/beneficiaries.js");
@@ -92,7 +117,7 @@ try {
   console.warn("Beneficiaries routes NOT loaded:", e.message);
 }
 
-// NEW: AI AGENT ROUTES
+// AI AGENT ROUTES
 let agentMounted = false;
 try {
   const mod = await import("./routes/agent.js");
@@ -104,7 +129,7 @@ try {
   console.warn("Agent routes NOT loaded:", e.message);
 }
 
-// 404 + error
+// 404 + Error handlers
 app.use((req, res) =>
   res.status(404).json({ ok: false, message: "Not Found" })
 );
@@ -113,7 +138,7 @@ app.use((err, _req, res, _next) => {
   res.status(500).json({ ok: false, message: "Server error" });
 });
 
-// Mongo (optional)
+// MongoDB (optional)
 async function initMongo() {
   const uri = process.env.MONGODB_URI;
   if (!uri) {
@@ -137,9 +162,10 @@ const PORT = Number(process.env.PORT || 3001);
 await initMongo();
 
 app.listen(PORT, () => {
-  console.log(`API listening on http://localhost:${PORT}`);
+  console.log(`✅ API listening on http://localhost:${PORT}`);
   console.log(`CORS allowed origins: ${ORIGINS.join(", ")}`);
   if (!authMounted) console.log("NOTE: /api/auth not mounted");
+  if (!subscriptionMounted) console.log("NOTE: /api/subscription not mounted");
   if (!chequesMounted) console.log("NOTE: /api/cheques not mounted");
   if (!beneficiariesMounted)
     console.log("NOTE: /api/beneficiaries not mounted");

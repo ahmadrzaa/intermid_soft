@@ -12,6 +12,7 @@ import {
   FiUsers,
   FiSettings,
   FiSearch,
+  FiCreditCard, // ✅ NEW icon
 } from "react-icons/fi";
 
 import FloatingTools from "../components/FloatingTools";
@@ -50,6 +51,13 @@ const MAIN_ITEMS = [
 ];
 
 const SETTINGS_ITEMS = [
+  // ✅ NEW menu item
+  {
+    key: "subscription",
+    label: "Subscription / Billing",
+    to: "/app/subscription",
+    icon: FiCreditCard,
+  },
   {
     key: "settings",
     label: "Settings",

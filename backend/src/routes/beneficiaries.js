@@ -1,7 +1,8 @@
-// backend/src/routes/beneficiaries.js
-// Simple JSON-based Beneficiaries master list
-// Add/edit/delete beneficiaries + flag to hide name on printed cheque.
-// Extended fields: mobile, iban, accountNumber, email.
+/* =========================================================
+ * INTERMID Beneficiaries / Payees API
+ * Mounted at: /api/beneficiaries
+ * Storage: backend/src/data/beneficiaries.json
+ * =======================================================*/
 
 import { Router } from "express";
 import fs from "fs";
@@ -10,252 +11,284 @@ import { fileURLToPath } from "url";
 import crypto from "crypto";
 import { requireAuth } from "../middleware/auth.js";
 
+const r = Router();
+
+// Protect all endpoints (same as subscription/auth style)
+r.use(requireAuth);
+
+// -------------------- File Store --------------------
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const r = Router();
+const DATA_DIR = path.join(__dirname, "..", "data");
+const FILE = path.join(DATA_DIR, "beneficiaries.json");
 
-// JSON file store (similar to cheques)
-const DB = path.join(__dirname, "..", "data", "beneficiaries.json");
-fs.mkdirSync(path.dirname(DB), { recursive: true });
-if (!fs.existsSync(DB)) fs.writeFileSync(DB, "[]", "utf8");
+function ensureStore() {
+  fs.mkdirSync(DATA_DIR, { recursive: true });
+  if (!fs.existsSync(FILE)) fs.writeFileSync(FILE, "[]", "utf8");
+}
 
-function safeRead() {
+function readStore() {
+  ensureStore();
   try {
-    const raw = fs.readFileSync(DB, "utf8");
-    const parsed = JSON.parse(raw || "[]");
+    const raw = fs.readFileSync(FILE, "utf8").trim();
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
     return Array.isArray(parsed) ? parsed : [];
-  } catch (e) {
-    // if file is corrupted, reset to empty
-    try {
-      fs.writeFileSync(DB, "[]", "utf8");
-    } catch (_) {}
+  } catch {
+    fs.writeFileSync(FILE, "[]", "utf8");
     return [];
   }
 }
 
-function write(arr) {
-  fs.writeFileSync(DB, JSON.stringify(arr, null, 2), "utf8");
+function writeStore(items) {
+  ensureStore();
+  const tmp = FILE + ".tmp";
+  fs.writeFileSync(tmp, JSON.stringify(items, null, 2), "utf8");
+  fs.renameSync(tmp, FILE);
+}
+
+function nowIso() {
+  return new Date().toISOString();
+}
+
+function newId() {
+  return crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`;
 }
 
 function s(v) {
-  if (v === undefined || v === null) return "";
-  return String(v).trim();
+  return v === null || v === undefined ? "" : String(v);
 }
 
-function normalizeEmail(v) {
-  const val = s(v);
-  return val ? val.toLowerCase() : "";
+function cleanObj(obj) {
+  // Keep all fields (don’t delete logic), but normalize common ones
+  const o = obj && typeof obj === "object" ? { ...obj } : {};
+
+  // Common naming variants
+  if (o.name !== undefined) o.name = s(o.name).trim();
+  if (o.title !== undefined) o.title = s(o.title).trim();
+
+  if (o.bank !== undefined) o.bank = s(o.bank).trim();
+  if (o.iban !== undefined) o.iban = s(o.iban).trim();
+  if (o.accountNo !== undefined) o.accountNo = s(o.accountNo).trim();
+  if (o.accountNumber !== undefined) o.accountNumber = s(o.accountNumber).trim();
+
+  if (o.phone !== undefined) o.phone = s(o.phone).trim();
+  if (o.email !== undefined) o.email = s(o.email).trim();
+
+  // derive displayName if not present (optional)
+  if (!o.displayName) {
+    const candidate = o.name || o.title || o.payeeName || "";
+    if (candidate) o.displayName = s(candidate).trim();
+  } else {
+    o.displayName = s(o.displayName).trim();
+  }
+
+  return o;
 }
 
-/**
- * GET /api/beneficiaries
- * Optional: ?q=search&limit=20
- * Returns: array
- */
-r.get("/", requireAuth, (req, res) => {
-  const all = safeRead();
-  let rows = all;
+function pickSearchText(item) {
+  // Search across many possible keys (flexible for your existing frontend)
+  const keys = [
+    "displayName",
+    "name",
+    "title",
+    "payeeName",
+    "bank",
+    "iban",
+    "accountNo",
+    "accountNumber",
+    "email",
+    "phone",
+    "notes",
+  ];
+  return keys.map((k) => s(item?.[k])).join(" ").toLowerCase();
+}
 
-  const q = s(req.query.q).toLowerCase();
-  if (q) {
-    rows = rows.filter((b) => {
-      const hay = [
-        b.name,
-        b.alias,
-        b.notes,
-        b.mobile,
-        b.phone,
-        b.iban,
-        b.accountNumber,
-        b.email,
-      ]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase();
+function sortItems(items, sortBy, dir) {
+  const direction = String(dir || "desc").toLowerCase() === "asc" ? 1 : -1;
+  const key = String(sortBy || "updatedAt").trim();
 
-      return hay.includes(q);
-    });
-  }
-
-  const limit = Number(req.query.limit || 0);
-  if (limit > 0) rows = rows.slice(0, limit);
-
-  res.json(rows);
-});
-
-/**
- * GET /api/beneficiaries/:id
- */
-r.get("/:id", requireAuth, (req, res) => {
-  const { id } = req.params;
-  const all = safeRead();
-  const found = all.find((b) => String(b.id) === String(id));
-  if (!found) return res.status(404).json({ message: "Not found" });
-  return res.json(found);
-});
-
-/**
- * POST /api/beneficiaries
- * Body:
- * {
- *   name,
- *   alias?,
- *   hideByDefault?,
- *   notes?,
- *   mobile? (or phone?),
- *   iban?,
- *   accountNumber?,
- *   email?
- * }
- */
-r.post("/", requireAuth, (req, res) => {
-  const body = req.body || {};
-
-  const name = s(body.name);
-  if (!name) {
-    return res.status(400).json({ message: "Name is required" });
-  }
-
-  const alias = s(body.alias);
-  const notes = s(body.notes);
-
-  // accept either mobile or phone from frontend
-  const mobile = s(body.mobile || body.phone);
-  const iban = s(body.iban);
-  const accountNumber = s(body.accountNumber);
-  const email = normalizeEmail(body.email);
-
-  const hideByDefault = !!body.hideByDefault;
-
-  const all = safeRead();
-  const normalizedName = name;
-
-  // prevent duplicate name (case-insensitive)
-  const exists = all.some(
-    (b) => (b.name || "").toLowerCase() === normalizedName.toLowerCase()
-  );
-  if (exists) {
-    return res.status(409).json({ message: "Beneficiary name already exists" });
-  }
-
-  const now = new Date().toISOString();
-  const id = crypto.randomUUID
-    ? crypto.randomUUID()
-    : Date.now().toString(36) + Math.random().toString(36).slice(2);
-
-  const record = {
-    id,
-    name: normalizedName,
-    alias,
-    hideByDefault, // true => default “keep name hidden on cheque”
-    notes,
-
-    // NEW FIELDS
-    mobile,
-    iban,
-    accountNumber,
-    email,
-
-    createdAt: now,
-    updatedAt: now,
-    createdBy: {
-      id: req.user?.id,
-      name: req.user?.name,
-      email: req.user?.email,
-      role: req.user?.role,
-    },
+  const get = (x) => {
+    const v = x?.[key];
+    if (v === undefined || v === null) return "";
+    return typeof v === "string" ? v.toLowerCase() : v;
   };
 
-  all.push(record);
-  write(all);
-  return res.status(201).json(record);
+  return [...items].sort((a, b) => {
+    const va = get(a);
+    const vb = get(b);
+    if (va < vb) return -1 * direction;
+    if (va > vb) return 1 * direction;
+    return 0;
+  });
+}
+
+// -------------------- Helpers --------------------
+function okList(req, res) {
+  const items = readStore();
+
+  // Optional query params: ?q= ?limit= ?offset= ?sortBy= ?dir=
+  const q = s(req.query?.q).trim().toLowerCase();
+  const limit = Math.max(0, Math.min(500, Number(req.query?.limit || 0) || 0)); // 0 = no limit
+  const offset = Math.max(0, Number(req.query?.offset || 0) || 0);
+  const sortBy = s(req.query?.sortBy || "updatedAt");
+  const dir = s(req.query?.dir || "desc");
+
+  let out = items;
+
+  if (q) {
+    out = out.filter((it) => pickSearchText(it).includes(q));
+  }
+
+  out = sortItems(out, sortBy, dir);
+
+  const total = out.length;
+  if (limit > 0) out = out.slice(offset, offset + limit);
+  else if (offset > 0) out = out.slice(offset);
+
+  return res.json({ ok: true, items: out, total });
+}
+
+function findById(items, id) {
+  const sid = s(id).trim();
+  return items.find((x) => s(x?.id) === sid) || null;
+}
+
+// -------------------- Routes --------------------
+
+// ✅ Main list endpoint
+// GET /api/beneficiaries
+r.get("/", okList);
+
+// ✅ Aliases used by different screens (your log shows these are being called)
+// GET /api/beneficiaries/payees
+r.get("/payees", okList);
+
+// GET /api/beneficiaries/cheque-beneficiaries
+r.get("/cheque-beneficiaries", okList);
+
+// ✅ Some frontend calls singular route without id
+// GET /api/beneficiaries/beneficiary
+// GET /api/beneficiaries/beneficiary?id=123
+r.get("/beneficiary", (req, res) => {
+  const id = s(req.query?.id).trim();
+  if (!id) return okList(req, res);
+
+  const items = readStore();
+  const found = findById(items, id);
+  if (!found) return res.status(404).json({ ok: false, message: "Beneficiary not found" });
+  return res.json({ ok: true, item: found });
 });
 
-/**
- * PUT /api/beneficiaries/:id
- * Body: { name?, alias?, hideByDefault?, notes?, mobile?, phone?, iban?, accountNumber?, email? }
- */
-r.put("/:id", requireAuth, (req, res) => {
-  const { id } = req.params;
-  const all = safeRead();
-  const idx = all.findIndex((b) => String(b.id) === String(id));
-  if (idx < 0) return res.status(404).json({ message: "Not found" });
-
-  const existing = all[idx];
-  const body = req.body || {};
-
-  // name
-  if (body.name !== undefined) {
-    const newName = s(body.name);
-    if (!newName) {
-      return res.status(400).json({ message: "Name cannot be empty" });
-    }
-
-    const dup = all.some(
-      (b) =>
-        String(b.id) !== String(id) &&
-        (b.name || "").toLowerCase() === newName.toLowerCase()
-    );
-    if (dup) {
-      return res
-        .status(409)
-        .json({ message: "Another beneficiary with this name already exists" });
-    }
-    existing.name = newName;
-  }
-
-  // alias
-  if (body.alias !== undefined) {
-    existing.alias = s(body.alias);
-  }
-
-  // hide flag
-  if (body.hideByDefault !== undefined) {
-    existing.hideByDefault = !!body.hideByDefault;
-  }
-
-  // notes
-  if (body.notes !== undefined) {
-    existing.notes = s(body.notes);
-  }
-
-  // NEW fields (allow clearing by sending empty string)
-  if (body.mobile !== undefined || body.phone !== undefined) {
-    existing.mobile = s(body.mobile || body.phone);
-  }
-
-  if (body.iban !== undefined) {
-    existing.iban = s(body.iban);
-  }
-
-  if (body.accountNumber !== undefined) {
-    existing.accountNumber = s(body.accountNumber);
-  }
-
-  if (body.email !== undefined) {
-    existing.email = normalizeEmail(body.email);
-  }
-
-  existing.updatedAt = new Date().toISOString();
-  all[idx] = existing;
-  write(all);
-
-  return res.json(existing);
+// ✅ Get single by path id
+// GET /api/beneficiaries/:id
+r.get("/:id", (req, res) => {
+  const items = readStore();
+  const found = findById(items, req.params.id);
+  if (!found) return res.status(404).json({ ok: false, message: "Beneficiary not found" });
+  return res.json({ ok: true, item: found });
 });
 
-/**
- * DELETE /api/beneficiaries/:id
- */
-r.delete("/:id", requireAuth, (req, res) => {
-  const { id } = req.params;
-  const all = safeRead();
-  const idx = all.findIndex((b) => String(b.id) === String(id));
-  if (idx < 0) return res.status(404).json({ message: "Not found" });
+// ✅ Create
+// POST /api/beneficiaries
+r.post("/", (req, res) => {
+  const items = readStore();
+  const payload = cleanObj(req.body);
 
-  const [removed] = all.splice(idx, 1);
-  write(all);
-  return res.json({ ok: true, removed });
+  // Minimal validation (won't break existing data)
+  const name = s(payload.displayName || payload.name || payload.title || payload.payeeName).trim();
+  if (!name) {
+    return res.status(400).json({ ok: false, message: "Name is required" });
+  }
+
+  const now = nowIso();
+  const item = {
+    id: newId(),
+    ...payload,
+    displayName: s(payload.displayName || name).trim(),
+    createdAt: now,
+    updatedAt: now,
+  };
+
+  items.unshift(item);
+  writeStore(items);
+
+  return res.status(201).json({ ok: true, item });
+});
+
+// ✅ Update (full replace-style)
+// PUT /api/beneficiaries/:id
+r.put("/:id", (req, res) => {
+  const items = readStore();
+  const id = s(req.params.id).trim();
+  const idx = items.findIndex((x) => s(x?.id) === id);
+  if (idx < 0) return res.status(404).json({ ok: false, message: "Beneficiary not found" });
+
+  const prev = items[idx] || {};
+  const patch = cleanObj(req.body);
+
+  const merged = {
+    ...prev,
+    ...patch,
+    id: prev.id, // never change
+    createdAt: prev.createdAt || nowIso(),
+    updatedAt: nowIso(),
+  };
+
+  // Keep displayName consistent
+  if (!s(merged.displayName).trim()) {
+    const nm = s(merged.name || merged.title || merged.payeeName).trim();
+    if (nm) merged.displayName = nm;
+  }
+
+  items[idx] = merged;
+  writeStore(items);
+
+  return res.json({ ok: true, item: merged });
+});
+
+// ✅ Patch (partial update)
+// PATCH /api/beneficiaries/:id
+r.patch("/:id", (req, res) => {
+  const items = readStore();
+  const id = s(req.params.id).trim();
+  const idx = items.findIndex((x) => s(x?.id) === id);
+  if (idx < 0) return res.status(404).json({ ok: false, message: "Beneficiary not found" });
+
+  const prev = items[idx] || {};
+  const patch = cleanObj(req.body);
+
+  const merged = {
+    ...prev,
+    ...patch,
+    id: prev.id,
+    createdAt: prev.createdAt || nowIso(),
+    updatedAt: nowIso(),
+  };
+
+  if (!s(merged.displayName).trim()) {
+    const nm = s(merged.name || merged.title || merged.payeeName).trim();
+    if (nm) merged.displayName = nm;
+  }
+
+  items[idx] = merged;
+  writeStore(items);
+
+  return res.json({ ok: true, item: merged });
+});
+
+// ✅ Delete
+// DELETE /api/beneficiaries/:id
+r.delete("/:id", (req, res) => {
+  const items = readStore();
+  const id = s(req.params.id).trim();
+  const idx = items.findIndex((x) => s(x?.id) === id);
+  if (idx < 0) return res.status(404).json({ ok: false, message: "Beneficiary not found" });
+
+  const removed = items.splice(idx, 1)[0];
+  writeStore(items);
+  return res.json({ ok: true, item: removed });
 });
 
 export default r;
